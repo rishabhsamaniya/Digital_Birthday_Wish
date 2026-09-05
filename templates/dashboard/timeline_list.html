@@ -1,0 +1,74 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Timeline for {{ profile.full_name }} | Admin Dashboard{% endblock %}
+{% block page_title %}Timeline: {{ profile.full_name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex items-center justify-between">
+        <a href="{% url 'dashboard:profile_list' %}" class="text-xs text-slate-400 hover:text-white transition">
+            ← Back to Profiles
+        </a>
+
+        <a href="{% url 'dashboard:timeline_create' profile.pk %}" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white text-sm font-medium shadow-lg hover:scale-105 transition-all">
+            + Add Milestone Event
+        </a>
+    </div>
+
+    {% if events %}
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-950/60 text-xs uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                        <tr>
+                            <th class="px-6 py-4">Icon & Title</th>
+                            <th class="px-6 py-4">Event Date</th>
+                            <th class="px-6 py-4">Sort Order</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        {% for event in events %}
+                            <tr class="hover:bg-slate-800/30 transition">
+                                <td class="px-6 py-4 flex items-center gap-3">
+                                    <span class="text-2xl">{{ event.icon|default:"✨" }}</span>
+                                    <div>
+                                        <div class="font-bold text-white">{{ event.title }}</div>
+                                        <div class="text-xs text-slate-400 line-clamp-1">{{ event.description }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-xs font-mono text-amber-300">
+                                    {{ event.event_date|date:"F j, Y" }}
+                                </td>
+                                <td class="px-6 py-4 text-xs font-mono text-slate-400">
+                                    {{ event.display_order }}
+                                </td>
+                                <td class="px-6 py-4 text-right space-x-2">
+                                    <a href="{% url 'dashboard:timeline_edit' event.pk %}" class="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-xs text-rose-300 transition inline-block">
+                                        Edit
+                                    </a>
+                                    <a href="{% url 'dashboard:timeline_delete' event.pk %}" class="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-xs text-red-400 transition inline-block">
+                                        Delete
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="p-12 rounded-2xl bg-slate-900/50 border border-slate-800 text-center space-y-4">
+            <div class="text-4xl">📅</div>
+            <div class="text-slate-300 font-medium">No timeline events added for {{ profile.full_name }} yet</div>
+            <div>
+                <a href="{% url 'dashboard:timeline_create' profile.pk %}" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 text-white text-sm font-medium shadow-lg hover:scale-105 transition-all inline-block">
+                    Add First Event
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

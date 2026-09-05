@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Secret Message — {{ profile.full_name }} 🔒{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-10px); }
+        40%, 80% { transform: translateX(10px); }
+    }
+    .shake-anim {
+        animation: shake 0.4s ease-in-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen px-4 pt-28 pb-36 relative overflow-hidden max-w-4xl mx-auto flex flex-col justify-center">
+    
+    <!-- Section Header -->
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-10 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-color);">
+            ✨ Step 9 • Confidential Secret ✨
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight" style="color: var(--text-color);">
+            A Special Secret Message
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            Written exclusively for {{ profile.nickname|default:profile.full_name }}.
+        </p>
+    </div>
+
+    {% if secret %}
+
+        <!-- PIN Lock Screen Container (Displayed if secret has a pin_code) -->
+        {% if secret.pin_code %}
+            <div id="pinLockScreen" class="glass-card rounded-3xl p-8 sm:p-12 text-center max-w-md mx-auto space-y-8 w-full shadow-2xl relative reveal-on-scroll">
+                
+                <div class="space-y-3">
+                    <div id="lockIcon" class="w-20 h-20 mx-auto rounded-full bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-4xl text-rose-300 shadow-lg shadow-rose-500/20">
+                        🔒
+                    </div>
+                    <h2 class="font-serif text-2xl font-bold text-white">Enter Passcode PIN</h2>
+                    <p class="text-xs text-slate-400 font-light">Enter the secret PIN to unlock this message</p>
+                </div>
+
+                <!-- PIN Code Input Field -->
+                <!-- Hidden CSRF Token for AJAX requests -->
+                <div class="hidden">{% csrf_token %}</div>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <input type="password" id="pinInput" maxlength="10" placeholder="••••"
+                               class="w-full text-center text-2xl font-mono tracking-widest px-6 py-4 rounded-2xl bg-slate-950/80 border border-white/20 text-white placeholder-slate-600 focus:outline-none focus:border-rose-400 transition shadow-inner">
+                    </div>
+
+                    <!-- Error Alert Message -->
+                    <div id="pinError" class="hidden text-xs text-rose-400 font-medium animate-pulse"></div>
+
+                    <!-- Submit Passcode Button -->
+                    <button type="button" id="unlockBtn"
+                            class="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 text-white font-bold text-base shadow-lg shadow-rose-500/30 hover:scale-105 transition-all">
+                        Unlock Secret 🔓
+                    </button>
+                </div>
+
+                <!-- Hint Accordion / Toggle -->
+                {% if secret.hint %}
+                    <div class="pt-4 border-t border-white/10 space-y-2">
+                        <button type="button" id="hintToggle" class="text-xs text-amber-300/80 hover:text-amber-300 transition underline underline-offset-4">
+                            Need a hint? 💡
+                        </button>
+                        <div id="hintBox" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 font-serif italic">
+                            Hint: {{ secret.hint }}
+                        </div>
+                    </div>
+                {% endif %}
+
+            </div>
+        {% endif %}
+
+        <!-- Secret Message Content Card (Revealed upon successful PIN or immediately if no PIN required) -->
+        <div id="secretCard" class="{% if secret.pin_code %}hidden{% endif %} glass-card rounded-3xl p-8 sm:p-14 space-y-8 max-w-2xl mx-auto w-full shadow-2xl border-2 border-amber-400/40 relative reveal-on-scroll">
+            
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-3xl text-amber-300 shadow-lg shadow-amber-500/20">
+                    💖
+                </div>
+                <h2 id="secretTitle" class="font-serif text-3xl font-bold text-white tracking-wide">
+                    {{ secret.title }}
+                </h2>
+                <span class="text-xs text-rose-400 font-mono">Confidential & Sealed with Love</span>
+            </div>
+
+            {% if secret.image %}
+                <div id="secretImageContainer" class="w-full max-h-80 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                    <img id="secretImg" src="{{ secret.image.url }}" alt="Surprise image" class="w-full h-full object-cover">
+                </div>
+            {% endif %}
+
+            <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                <p id="secretText" class="font-serif text-lg sm:text-xl text-slate-100 leading-relaxed italic whitespace-pre-line text-center">
+                    {{ secret.secret_text }}
+                </p>
+            </div>
+
+            <!-- Grand Final Step CTA Button -->
+            <div class="text-center pt-4">
+                <a href="{{ next_url }}" class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-rose-500 via-amber-500 to-rose-500 text-white font-bold text-lg shadow-xl shadow-rose-500/40 hover:scale-105 transition-all">
+                    <span>Make a Birthday Wish 🎂 ✨</span>
+                </a>
+            </div>
+
+        </div>
+
+    {% else %}
+        <!-- Default Fallback if no secret message added yet -->
+        <div class="glass-card rounded-3xl p-10 sm:p-14 text-center max-w-xl mx-auto space-y-6 reveal-on-scroll border border-amber-400/30">
+            <div class="text-6xl animate-bounce">💌</div>
+            <div class="space-y-2">
+                <h2 class="font-serif text-3xl font-bold text-white">Sealed With Eternal Love</h2>
+                <p class="text-slate-300 text-base font-light leading-relaxed">
+                    Some feelings are too profound for words, yet felt in every heart beat. Wishing {{ profile.full_name }} a lifetime of joy and happiness!
+                </p>
+            </div>
+            
+            <div class="pt-4">
+                <a href="{{ next_url }}" class="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-rose-500 via-amber-500 to-rose-500 text-white font-bold text-base shadow-xl shadow-rose-500/40 hover:scale-105 transition-all">
+                    <span>Make a Birthday Wish 🎂 ✨</span>
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</section>
+
+<!-- Navigation Controls Bar -->
+{% include "components/navigation_controls.html" %}
+
+<!-- Footer Component -->
+{% include "components/footer.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const pinInput = document.getElementById("pinInput");
+        const unlockBtn = document.getElementById("unlockBtn");
+        const pinError = document.getElementById("pinError");
+        const pinLockScreen = document.getElementById("pinLockScreen");
+        const secretCard = document.getElementById("secretCard");
+        const hintToggle = document.getElementById("hintToggle");
+        const hintBox = document.getElementById("hintBox");
+
+        if (hintToggle && hintBox) {
+            hintToggle.addEventListener("click", function() {
+                hintBox.classList.toggle("hidden");
+            });
+        }
+
+        async function verifyPin() {
+            if (!pinInput) return;
+            const pin = pinInput.value.trim();
+            if (!pin) {
+                showError("Please enter your PIN passcode.");
+                return;
+            }
+
+            // Get CSRF token from hidden input OR from the cookie (Django standard)
+            function getCsrfToken() {
+                const el = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (el) return el.value;
+                const match = document.cookie.match(/csrftoken=([^;]+)/);
+                return match ? match[1] : '';
+            }
+            const csrfToken = getCsrfToken();
+
+            try {
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: new URLSearchParams({ 'pin': pin })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update content dynamically
+                    if (data.title) document.getElementById("secretTitle").textContent = data.title;
+                    if (data.secret_text) document.getElementById("secretText").textContent = data.secret_text;
+
+                    // Transition screens smoothly
+                    pinLockScreen.classList.add("hidden");
+                    secretCard.classList.remove("hidden");
+
+                    // Trigger celebration confetti animation
+                    if (window.BirthdayAnimations && typeof BirthdayAnimations.triggerConfetti === "function") {
+                        BirthdayAnimations.triggerConfetti();
+                    }
+                } else {
+                    showError(data.error || "Incorrect PIN passcode.");
+                }
+            } catch (err) {
+                console.error("PIN verification error:", err);
+                showError("Verification failed. Please try again.");
+            }
+        }
+
+        function showError(msg) {
+            if (!pinError || !pinLockScreen) return;
+            pinError.textContent = msg;
+            pinError.classList.remove("hidden");
+            pinLockScreen.classList.add("shake-anim");
+            setTimeout(() => pinLockScreen.classList.remove("shake-anim"), 500);
+        }
+
+        if (unlockBtn) {
+            unlockBtn.addEventListener("click", verifyPin);
+        }
+
+        if (pinInput) {
+            pinInput.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    verifyPin();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Birthday Reveal — {{ profile.full_name }} 🎂{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen flex flex-col items-center justify-center text-center px-4 pt-24 pb-32 relative overflow-hidden">
+    
+    <!-- Hero Reveal Container -->
+    <div class="max-w-3xl w-full backdrop-blur-2xl bg-white/5 border border-white/10 rounded-3xl p-8 sm:p-14 shadow-2xl relative z-10 space-y-8 animate-zoom-in" style="background: var(--card-bg); border-color: var(--card-border);">
+        
+        <!-- Birthday Badge -->
+        <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-rose-500/20 border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-semibold tracking-widest uppercase animate-pulse">
+            <span>✨ Step 2 • Grand Reveal ✨</span>
+        </div>
+
+        <!-- Big Cinematic Header -->
+        <div class="space-y-4">
+            <h1 class="font-serif text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight" style="color: var(--text-color);">
+                It's Your Special Day!
+            </h1>
+            
+            <div class="text-2xl sm:text-4xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-amber-300 to-purple-400">
+                Happy Birthday, {{ profile.nickname|default:profile.full_name }}! 🎉
+            </div>
+            
+            <div class="text-sm font-mono text-slate-400">
+                Celebrating {{ profile.birthday_date|date:"F j, Y" }}
+            </div>
+        </div>
+
+        <!-- Emotional Birthday Message -->
+        <div class="p-6 rounded-2xl bg-white/5 border border-white/10 max-w-xl mx-auto space-y-3">
+            <p class="text-slate-200 text-base sm:text-lg font-light leading-relaxed italic">“{{ display_message }}”</p>
+        </div>
+
+        <!-- Interactive Celebration Trigger Button -->
+        <div class="pt-2">
+            <button onclick="triggerCelebration()" class="px-8 py-3.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium text-sm transition-all duration-300 hover:scale-105 flex items-center gap-2 mx-auto shadow-lg">
+                <span>Celebrate & Trigger Confetti 🎉</span>
+            </button>
+        </div>
+
+        {# Hidden audio for autoplayed background music (played when user clicks Celebrate) #}
+        {% if primary_track and primary_track.audio_url %}
+        <audio id="revealAudio" preload="auto">
+            <source src="{{ primary_track.audio_url }}" type="audio/mpeg">
+        </audio>
+        {% endif %}
+
+    </div>
+
+</section>
+
+<!-- Navigation Controls Bar -->
+{% include "components/navigation_controls.html" %}
+
+<!-- Footer Component -->
+{% include "components/footer.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function triggerCelebration() {
+    if (window.BirthdayAnimations) {
+        window.BirthdayAnimations.triggerConfetti();
+        window.BirthdayAnimations.spawnFloatingHeart(window.innerWidth / 2, window.innerHeight / 2);
+    }
+    // Try to play background music if available
+    try {
+        const a = document.getElementById('revealAudio');
+        if (a) {
+            a.volume = 0.7;
+            a.play().then(() => {
+                console.log('Reveal audio playing');
+            }).catch(err => {
+                console.log('Autoplay blocked, showing play control', err);
+                showRevealPlayControl();
+            });
+        }
+    } catch (e) {
+        console.log('Audio play error', e);
+    }
+}
+
+function showRevealPlayControl() {
+    // create a small floating play button so user can manually start audio
+    if (document.getElementById('revealPlayBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'revealPlayBtn';
+    btn.textContent = '▶ Play Music';
+    btn.className = 'fixed bottom-6 right-6 z-50 px-4 py-2 rounded-full bg-rose-500 text-white shadow-lg';
+    btn.onclick = () => {
+        const a = document.getElementById('revealAudio');
+        if (a) { a.play(); btn.remove(); }
+    };
+    document.body.appendChild(btn);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        triggerCelebration();
+    }, 600);
+});
+</script>
+{% endblock %}

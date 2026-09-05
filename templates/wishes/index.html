@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Make a Wish — {{ profile.full_name }} 🎂{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Candle Flame Animations */
+    @keyframes flameFlicker {
+        0%, 100% { transform: scale(1) rotate(-1deg); opacity: 0.95; }
+        25% { transform: scale(1.1, 0.9) rotate(1deg); opacity: 1; }
+        50% { transform: scale(0.9, 1.1) rotate(-2deg); opacity: 0.85; }
+        75% { transform: scale(1.05, 0.95) rotate(2deg); opacity: 0.95; }
+    }
+    
+    .flame-active {
+        animation: flameFlicker 1.2s infinite ease-in-out;
+        box-shadow: 0 0 15px #f59e0b, 0 0 30px #ef4444, 0 0 45px #f59e0b;
+    }
+    
+    .flame-out {
+        opacity: 0 !important;
+        transform: scale(0) !important;
+        transition: all 0.6s ease-out;
+    }
+
+    @keyframes puffSmoke {
+        0% { opacity: 0.8; transform: translateY(0) scale(0.5); }
+        100% { opacity: 0; transform: translateY(-40px) scale(2); }
+    }
+
+    .smoke-particle {
+        animation: puffSmoke 1.5s ease-out forwards;
+    }
+
+    .cake-scene { filter: drop-shadow(0 18px 20px rgba(15, 23, 42, 0.45)); }
+    .cake-top { position: relative; overflow: hidden; background: linear-gradient(180deg, #ff9abb 0%, #f66c9d 65%, #df477e 100%); box-shadow: inset 0 -8px 0 rgba(143, 28, 80, 0.18), inset 0 5px 0 rgba(255,255,255,0.32); }
+    .cake-top::before { content: ""; position: absolute; inset: 9px 18px auto; height: 9px; border-radius: 999px; background: rgba(255,255,255,0.42); }
+    .cake-top::after { content: ""; position: absolute; left: 18px; right: 18px; bottom: 8px; height: 7px; border-radius: 999px; background: repeating-linear-gradient(90deg, #fff1f5 0 12px, #ffd0df 12px 24px); opacity: 0.8; }
+    .cake-bottom { position: relative; overflow: hidden; background: linear-gradient(180deg, #ffe9ad 0%, #ffc978 58%, #e99a52 100%); box-shadow: inset 0 -10px 0 rgba(160, 74, 42, 0.16), inset 0 5px 0 rgba(255,255,255,0.5); }
+    .cake-bottom::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 18% 35%, rgba(255,255,255,0.7) 0 3px, transparent 4px), radial-gradient(circle at 72% 62%, rgba(196,91,64,0.22) 0 3px, transparent 4px); background-size: 44px 30px, 55px 38px; }
+    .cake-frosting { position: absolute; left: 0; right: 0; bottom: -1px; height: 15px; background: #fff4dc; border-radius: 50% 50% 20% 20%; box-shadow: 0 3px 0 rgba(207, 111, 83, 0.28); }
+    .candle-stick { position: relative; background: repeating-linear-gradient(135deg, #fff 0 5px, #f58ba8 5px 10px); box-shadow: inset -2px 0 rgba(177, 41, 92, 0.25); }
+    .candle-wick { width: 2px; height: 6px; background: #412333; }
+    .cake-plate { background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(148,163,184,0.45)); box-shadow: 0 5px 9px rgba(0,0,0,0.28); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen px-4 pt-28 pb-36 relative overflow-hidden max-w-5xl mx-auto space-y-16">
+    
+    <!-- Section Header -->
+    <div class="text-center max-w-2xl mx-auto space-y-4 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-color);">
+            🎂 Grand Finale • Make a Wish 🎂
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight" style="color: var(--text-color);">
+            Blow the Candles & Wish
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            Close your eyes, make a heartfelt wish for {{ profile.nickname|default:profile.full_name }}, and blow out the birthday candles!
+        </p>
+    </div>
+
+    <!-- Interactive Birthday Cake & Candle Blowing Station -->
+    <div class="glass-card rounded-3xl p-8 sm:p-14 text-center max-w-xl mx-auto space-y-8 shadow-2xl relative reveal-on-scroll">
+        <audio id="birthdayAudio" preload="auto">
+            <source src="{% static 'audio/happy-birthday.mp3' %}" type="audio/mpeg">
+        </audio>
+        
+        <!-- Status Indicator Badge -->
+        <div id="candleStatusBadge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-mono text-amber-300">
+            <span>✨ Candles Lit • Ready to Blow</span>
+        </div>
+
+        <!-- 3D Birthday Cake Visual Container -->
+        <div class="relative py-8 flex flex-col items-center justify-center">
+            
+            <!-- Candles Row -->
+            <div class="cake-scene flex items-center justify-center gap-6 mb-2 relative z-10">
+                {% for i in "123" %}
+                    <div class="relative flex flex-col items-center">
+                        <!-- Flame -->
+                        <div class="flame flame-active w-4 h-6 rounded-full bg-gradient-to-t from-amber-500 via-rose-500 to-yellow-200 transition-all duration-500"></div>
+                        <!-- Smoke Container -->
+                        <div class="smoke-box absolute -top-4 w-6 h-6 pointer-events-none"></div>
+                        <!-- Candle Stick -->
+                        <div class="candle-wick"></div>
+                        <div class="candle-stick w-4 h-12 rounded-t-sm shadow-md"></div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Cake Tier 1 (Top) -->
+            <div class="cake-scene cake-top w-48 h-14 rounded-t-2xl border-b-4 border-rose-500/30 flex items-center justify-center shadow-lg">
+                <div class="cake-frosting"></div>
+            </div>
+
+            <!-- Cake Tier 2 (Bottom) -->
+            <div class="cake-scene cake-bottom w-64 h-20 rounded-b-3xl border-t-2 border-white/40 flex items-center justify-center shadow-2xl">
+                <div class="text-xs font-serif text-rose-900 font-bold tracking-widest uppercase relative z-10">
+                    Happy Birthday {{ profile.nickname|default:profile.full_name }} 🎉
+                </div>
+            </div>
+
+            <!-- Cake Plate -->
+            <div class="cake-plate w-72 h-4 rounded-full mt-1 backdrop-blur-md"></div>
+
+        </div>
+
+        <!-- Candle Blow Interactive Controls -->
+        <div class="space-y-4 pt-2">
+            <div class="flex items-center justify-center">
+                <button type="button" id="blowCandlesBtn" class="px-10 py-3.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 text-white font-bold text-sm shadow-xl shadow-rose-500/30 hover:scale-105 transition-all">
+                    Blow Candles 💨
+                </button>
+            </div>
+            <p id="micInstruction" class="text-[11px] text-slate-400">Tap once to turn on your microphone, then blow toward it.</p>
+        </div>
+
+    </div>
+
+</section>
+
+<!-- Journey Navigation -->
+{% include "components/navigation_controls.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const blowBtn = document.getElementById("blowCandlesBtn");
+        const micInstruction = document.getElementById("micInstruction");
+        const candleBlownInput = document.getElementById("candleBlownInput");
+        const statusBadge = document.getElementById("candleStatusBadge");
+        const flames = document.querySelectorAll(".flame");
+        const wishForm = document.getElementById("wishForm");
+        const wishesGrid = document.getElementById("wishesGrid");
+        const noWishesMsg = document.getElementById("noWishesMsg");
+        const wishSuccessToast = document.getElementById("wishSuccessToast");
+
+        let candlesBlown = false;
+        let microphoneStream = null;
+        let audioContext = null;
+        let manualMode = false;
+
+        function playBirthdayMelody() {
+            const birthdayAudio = document.getElementById("birthdayAudio");
+            if (birthdayAudio) {
+                birthdayAudio.currentTime = 0;
+                birthdayAudio.play().catch(() => playFallbackMelody());
+                return;
+            }
+            playFallbackMelody();
+        }
+
+        function playFallbackMelody() {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            const context = audioContext || new AudioContextClass();
+            audioContext = context;
+            const notes = [261.63, 261.63, 293.66, 261.63, 349.23, 329.63, 261.63, 261.63, 293.66, 261.63, 392.00, 349.23];
+            const start = context.currentTime;
+            notes.forEach((frequency, index) => {
+                const oscillator = context.createOscillator();
+                const gain = context.createGain();
+                const noteStart = start + index * 0.24;
+                oscillator.type = "sine";
+                oscillator.frequency.value = frequency;
+                gain.gain.setValueAtTime(0.0001, noteStart);
+                gain.gain.exponentialRampToValueAtTime(0.18, noteStart + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.21);
+                oscillator.connect(gain);
+                gain.connect(context.destination);
+                oscillator.start(noteStart);
+                oscillator.stop(noteStart + 0.22);
+            });
+        }
+
+        function blowOutCandles() {
+            if (candlesBlown) return;
+            candlesBlown = true;
+            if (candleBlownInput) candleBlownInput.value = "true";
+
+            // Extinguish flames
+            flames.forEach(f => {
+                f.classList.remove("flame-active");
+                f.classList.add("flame-out");
+            });
+
+            // Update badge text
+            if (statusBadge) {
+                statusBadge.className = "inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-mono text-emerald-300";
+                statusBadge.innerHTML = "<span>🎉 Candles Blown Out! Wish Sealed</span>";
+            }
+
+            // Confetti celebration
+            if (window.BirthdayAnimations && typeof BirthdayAnimations.triggerConfetti === "function") {
+                BirthdayAnimations.triggerConfetti();
+            }
+            playBirthdayMelody();
+            if (microphoneStream) {
+                microphoneStream.getTracks().forEach(track => track.stop());
+                microphoneStream = null;
+            }
+            if (blowBtn) {
+                blowBtn.disabled = true;
+                blowBtn.textContent = "Birthday Wish Sealed 🎉";
+                blowBtn.classList.remove("hover:scale-105");
+            }
+            if (micInstruction) micInstruction.textContent = "Beautiful! Your birthday wish is on its way. ✨";
+        }
+
+        if (blowBtn) {
+            blowBtn.addEventListener("click", async function() {
+                if (candlesBlown) return;
+                if (manualMode) {
+                    blowOutCandles();
+                    return;
+                }
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    microphoneStream = stream;
+                    blowBtn.textContent = "Listening... Blow Now 🎙️";
+                    blowBtn.classList.add("animate-pulse");
+                    if (micInstruction) micInstruction.textContent = "Microphone is on. Blow gently toward your device.";
+
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const analyser = audioContext.createAnalyser();
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+
+                    analyser.fftSize = 256;
+                    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                    function checkVolume() {
+                        if (candlesBlown) return;
+                        analyser.getByteFrequencyData(dataArray);
+                        let sum = 0;
+                        for (let i = 0; i < dataArray.length; i++) {
+                            sum += dataArray[i];
+                        }
+                        let average = sum / dataArray.length;
+
+                        if (average > 45) {
+                            blowOutCandles();
+                            return;
+                        }
+                        requestAnimationFrame(checkVolume);
+                    }
+                    checkVolume();
+                } catch (err) {
+                    console.warn("Microphone access denied or unsupported:", err);
+                    if (micInstruction) micInstruction.textContent = "Microphone unavailable. Tap the button again to blow candles manually.";
+                    blowBtn.textContent = "Blow Candles Manually 💨";
+                    blowBtn.classList.remove("animate-pulse");
+                    manualMode = true;
+                }
+            });
+        }
+
+        // AJAX Wish Form Submission
+        if (wishForm) {
+            wishForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+                const formData = new FormData(wishForm);
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken,
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        wishForm.reset();
+                        if (wishSuccessToast) {
+                            wishSuccessToast.classList.remove("hidden");
+                            setTimeout(() => wishSuccessToast.classList.add("hidden"), 4000);
+                        }
+
+                        // Remove empty message if present
+                        if (noWishesMsg) noWishesMsg.remove();
+
+                        // Append new wish card to grid dynamically
+                        const newCard = document.createElement("div");
+                        newCard.className = "glass-card glass-card-hover rounded-2xl p-6 space-y-3 flex flex-col justify-between animate-fade-in-up";
+                        newCard.innerHTML = `
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-serif font-bold text-base text-white">${data.sender_name}</h3>
+                                    ${candlesBlown ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">🕯️ Blown</span>' : ''}
+                                </div>
+                                <p class="text-slate-300 text-xs leading-relaxed italic">"${data.message}"</p>
+                            </div>
+                            <div class="text-[10px] font-mono text-rose-400/80 pt-2 border-t border-white/5">
+                                ${data.created_at}
+                            </div>
+                        `;
+                        wishesGrid.prepend(newCard);
+                    } else {
+                        alert("Please fill in all required fields.");
+                    }
+                } catch (err) {
+                    console.error("Wish submission error:", err);
+                    alert("Submission failed. Please try again.");
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

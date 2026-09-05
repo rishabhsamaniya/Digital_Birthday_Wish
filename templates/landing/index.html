@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Birthday Wish — Create Magical Birthday Surprises{% endblock %}
+
+{% block extra_css %}
+<style>
+    .classic-landing {
+        min-height: calc(100vh - 2rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+    }
+    .auth-scene {
+        width: min(100%, 430px);
+        perspective: 1400px;
+    }
+    .auth-flip-card {
+        position: relative;
+        min-height: 565px;
+        transform-style: preserve-3d;
+        transition: transform 0.75s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    .auth-flip-card.is-flipped {
+        transform: rotateY(180deg);
+    }
+    .auth-face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+    .auth-face-back {
+        transform: rotateY(180deg);
+    }
+    .classic-rule {
+        width: 3rem;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #f6b568, transparent);
+        margin: 1.25rem auto;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .auth-flip-card { transition: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="classic-landing">
+<div class="w-full max-w-5xl mx-auto">
+    <!-- Main Hero Banner -->
+    <div class="text-center mb-8">
+        <p class="text-amber-300/80 text-xs uppercase tracking-[0.3em]">A little place for big feelings</p>
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-rose-300 to-pink-400 mt-4">
+            Make birthdays unforgettable
+        </h1>
+        <div class="classic-rule"></div>
+        <p class="text-slate-400 text-sm sm:text-base max-w-md mx-auto font-light leading-relaxed">
+            Create a beautiful birthday story, one memory at a time.
+        </p>
+    </div>
+
+    {% if messages %}
+    <div class="max-w-md mx-auto mb-8 space-y-2">
+        {% for message in messages %}
+        <div class="px-4 py-3 rounded-2xl text-sm font-medium {% if message.tags == 'error' %}bg-rose-500/20 text-rose-300 border border-rose-500/30{% else %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/30{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- USER LOGGED IN STATE -->
+    {% if user.is_authenticated %}
+    <div class="glass-card rounded-3xl p-8 md:p-12 border border-white/15 shadow-2xl backdrop-blur-xl bg-white/5 text-center mb-16 relative overflow-hidden">
+        <div class="text-5xl mb-4">👑</div>
+        <h2 class="text-2xl md:text-4xl font-extrabold text-white mb-2">Welcome Back, {{ user.username }}!</h2>
+        <p class="text-gray-300 text-sm md:text-base max-w-xl mx-auto mb-8">Ready to create another magical birthday experience or view your existing wish pages?</p>
+
+        <div class="flex flex-wrap items-center justify-center gap-4">
+            <a href="{% url 'profiles:create_wizard' %}" class="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-rose-500 via-pink-600 to-amber-400 hover:from-rose-600 text-white font-extrabold text-base shadow-xl shadow-rose-500/30 transition-all transform hover:-translate-y-0.5">
+                <span>✨</span> Create New Birthday Page
+            </a>
+            <a href="{% url 'profiles:my_profiles' %}" class="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-base border border-white/15 backdrop-blur-md transition-all">
+                <span>🎁</span> View My Pages
+            </a>
+        </div>
+    </div>
+
+    <!-- USER NOT LOGGED IN STATE: DIRECT LOGIN & SIGN UP ON HOME PAGE -->
+    {% else %}
+    <div class="auth-scene mx-auto">
+        <div id="auth-flip-card" class="auth-flip-card">
+            <div class="auth-face auth-face-front glass-card rounded-3xl p-7 sm:p-9 border border-white/15 shadow-2xl backdrop-blur-xl bg-white/5">
+                <div class="text-center mb-6">
+                    <div class="text-3xl mb-3">✦</div>
+                    <h2 class="font-serif text-3xl font-bold text-white">Welcome back</h2>
+                    <p class="text-xs text-gray-400 mt-2">Sign in to continue your birthday stories</p>
+                </div>
+
+                <form method="post" action="{% url 'accounts:login' %}" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Username</label>
+                        <input type="text" name="username" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 text-sm" placeholder="Enter username">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">Password</label>
+                        <input type="password" name="password" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 text-sm" placeholder="Enter password">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 text-white font-bold shadow-lg shadow-rose-500/25 transition-all text-sm transform hover:-translate-y-0.5">
+                        Log In
+                    </button>
+                </form>
+                <button type="button" onclick="flipAuthCard()" class="w-full mt-5 text-xs text-amber-300 hover:text-amber-200 transition">
+                    New here? Create an account →
+                </button>
+            </div>
+
+            <div class="auth-face auth-face-back glass-card rounded-3xl p-7 sm:p-9 border border-white/15 shadow-2xl backdrop-blur-xl bg-white/5">
+                <div class="text-center mb-6">
+                    <div class="text-3xl mb-3">✧</div>
+                    <h2 class="font-serif text-3xl font-bold text-white">Begin something lovely</h2>
+                    <p class="text-xs text-gray-400 mt-2">Create an account and start your story</p>
+                </div>
+
+                <form method="post" action="{% url 'accounts:signup' %}" class="space-y-4">
+                    {% csrf_token %}
+                    {% for field in signup_form %}
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">{{ field.label }}</label>
+                        <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" required class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 text-sm">
+                        {% if field.errors %}<p class="text-[10px] text-rose-300 mt-1">{{ field.errors|striptags }}</p>{% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-500 via-pink-600 to-amber-400 hover:from-rose-600 text-white font-bold shadow-lg shadow-rose-500/25 transition-all text-sm transform hover:-translate-y-0.5">
+                        Sign Up
+                    </button>
+                </form>
+                <button type="button" onclick="flipAuthCard()" class="w-full mt-5 text-xs text-amber-300 hover:text-amber-200 transition">
+                    Already have an account? ←
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+</div>
+
+<script>
+    function flipAuthCard() {
+        document.getElementById("auth-flip-card").classList.toggle("is-flipped");
+    }
+</script>
+{% endblock %}

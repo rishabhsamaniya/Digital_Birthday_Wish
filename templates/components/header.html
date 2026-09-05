@@ -1,0 +1,55 @@
+<!-- Floating Glass Header Bar -->
+{% if show_header and not hide_header %}
+<header class="fixed top-0 left-0 right-0 z-40 px-4 py-3 pointer-events-none">
+    <div class="max-w-4xl mx-auto backdrop-blur-xl bg-slate-950/60 border border-white/10 rounded-full px-5 py-2.5 flex items-center justify-between shadow-2xl pointer-events-auto">
+        
+        <!-- Brand / Profile Name -->
+        <a href="/{{ profile.slug }}/" class="flex items-center gap-2.5 group">
+            <span class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-sm shadow-md group-hover:scale-110 transition-transform">🎁</span>
+            <span class="font-serif font-bold text-sm sm:text-base tracking-wide text-white truncate max-w-[140px] sm:max-w-xs">
+                {{ profile.nickname|default:profile.full_name }}
+            </span>
+        </a>
+
+        <!-- Section Title or Step Indicator -->
+        {% if current_step %}
+            <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                <span>Step {{ current_step }} of {{ total_steps|default:9 }}</span>
+            </div>
+        {% endif %}
+
+        <!-- Quick Actions & User Navigation -->
+        <div class="flex items-center gap-2">
+            <a href="{% url 'profiles:create_wizard' %}" class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                <span>Create</span>
+                <span>✨</span>
+            </a>
+
+            {% if user.is_authenticated %}
+            <a href="{% url 'profiles:my_profiles' %}" class="hidden sm:inline-flex px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-medium border border-white/10 transition">
+                My Pages
+            </a>
+            <a href="{% url 'accounts:logout' %}" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-rose-500/20 text-gray-300 hover:text-rose-300 text-xs font-medium transition">
+                Logout
+            </a>
+            {% else %}
+            <a href="{% url 'accounts:login' %}" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-medium border border-white/10 transition">
+                Log In
+            </a>
+            <a href="{% url 'accounts:signup' %}" class="hidden sm:inline-flex px-3 py-1.5 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-medium border border-rose-500/30 transition">
+                Sign Up
+            </a>
+            {% endif %}
+
+            <button type="button" id="openShareModalBtn" class="px-3.5 py-1.5 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-semibold border border-rose-500/30 transition flex items-center gap-1.5 shadow-sm" title="Share Birthday Page">
+                <span>Share</span>
+                <span>📲</span>
+            </button>
+        </div>
+
+
+    </div>
+</header>
+{% include "components/share_modal.html" %}
+{% endif %}

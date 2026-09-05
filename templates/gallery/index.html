@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Photo Gallery — {{ profile.full_name }} 📸{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen px-4 pt-28 pb-36 relative overflow-hidden max-w-6xl mx-auto">
+    
+    <!-- Section Header -->
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-12 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-color);">
+            ✨ Step 6 • Photo Gallery ✨
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight" style="color: var(--text-color);">
+            Captured Moments
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            Snapshots of joy, laughter, and unforgettable memories with {{ profile.nickname|default:profile.full_name }}.
+        </p>
+    </div>
+
+    <!-- Gallery Grid -->
+    {% if photos %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for photo in photos %}
+                <div class="glass-card glass-card-hover rounded-3xl overflow-hidden cursor-pointer group reveal-on-scroll"
+                     onclick="openLightbox({{ forloop.counter0 }})">
+                    
+                    <div class="relative w-full h-64 overflow-hidden bg-slate-950 flex items-center justify-center">
+                        {% if photo.image %}
+                            <img src="{{ photo.image.url }}"
+                                 alt="{{ photo.title|default:'Gallery Photo' }}"
+                                 loading="lazy"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        {% else %}
+                            <div class="text-4xl">📸</div>
+                        {% endif %}
+                        
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                            {% if photo.title %}
+                                <h3 class="font-serif font-bold text-base text-white truncate">{{ photo.title }}</h3>
+                            {% endif %}
+                            {% if photo.caption %}
+                                <p class="text-slate-300 text-xs line-clamp-2">{{ photo.caption }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State Fallback -->
+        <div class="glass-card rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 animate-zoom-in">
+            <div class="text-5xl animate-bounce">📸</div>
+            <h2 class="font-serif text-2xl font-bold text-white">Picture Perfect</h2>
+            <p class="text-slate-300 text-sm font-light leading-relaxed">
+                Every snapshot with {{ profile.full_name }} is a frame of pure happiness.
+            </p>
+        </div>
+    {% endif %}
+
+</section>
+
+<!-- Fullscreen Lightbox Modal Component -->
+<div id="lightboxModal" class="fixed inset-0 z-50 hidden bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-between p-4 sm:p-8 animate-fade-in">
+    
+    <!-- Top Modal Controls -->
+    <div class="w-full max-w-5xl flex items-center justify-between z-10">
+        <span id="lightboxCounter" class="text-xs font-mono text-amber-300 bg-white/10 px-3 py-1.5 rounded-full border border-white/15">
+            Photo 1 / 1
+        </span>
+        
+        <button onclick="closeLightbox()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center text-xl transition">
+            ✕
+        </button>
+    </div>
+
+    <!-- Center Active Image View -->
+    <div class="relative max-w-4xl max-h-[70vh] flex items-center justify-center my-auto w-full">
+        <!-- Prev Button -->
+        <button onclick="prevLightboxImage()" class="absolute left-2 sm:-left-12 z-20 w-12 h-12 rounded-full bg-slate-900/80 hover:bg-rose-500 text-white border border-white/20 flex items-center justify-center text-2xl shadow-2xl transition">
+            ‹
+        </button>
+
+        <!-- Main Photo Image -->
+        <img id="lightboxImg" src="" alt="Active Photo" class="max-h-[65vh] w-auto max-w-full rounded-2xl shadow-2xl border border-white/10 object-contain">
+
+        <!-- Next Button -->
+        <button onclick="nextLightboxImage()" class="absolute right-2 sm:-right-12 z-20 w-12 h-12 rounded-full bg-slate-900/80 hover:bg-rose-500 text-white border border-white/20 flex items-center justify-center text-2xl shadow-2xl transition">
+            ›
+        </button>
+    </div>
+
+    <!-- Bottom Caption Box -->
+    <div class="w-full max-w-2xl text-center space-y-2 z-10 pb-4">
+        <h3 id="lightboxTitle" class="font-serif font-bold text-xl text-white"></h3>
+        <p id="lightboxCaption" class="text-slate-300 text-xs sm:text-sm font-light leading-relaxed"></p>
+    </div>
+
+</div>
+
+<!-- Lightbox JS Logic -->
+<script>
+    const galleryData = [
+        {% for photo in photos %}
+            {
+                url: "{% if photo.image %}{{ photo.image.url }}{% endif %}",
+                title: "{{ photo.title|escapejs }}",
+                caption: "{{ photo.caption|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let currentPhotoIndex = 0;
+
+    function openLightbox(index) {
+        if (!galleryData.length) return;
+        currentPhotoIndex = index;
+        updateLightboxContent();
+        document.getElementById("lightboxModal").classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+        document.getElementById("lightboxModal").classList.add("hidden");
+        document.body.style.overflow = "auto";
+    }
+
+    function updateLightboxContent() {
+        const photo = galleryData[currentPhotoIndex];
+        if (!photo) return;
+        document.getElementById("lightboxImg").src = photo.url;
+        document.getElementById("lightboxTitle").textContent = photo.title;
+        document.getElementById("lightboxCaption").textContent = photo.caption;
+        document.getElementById("lightboxCounter").textContent = `Photo ${currentPhotoIndex + 1} of ${galleryData.length}`;
+    }
+
+    function prevLightboxImage() {
+        if (!galleryData.length) return;
+        currentPhotoIndex = (currentPhotoIndex - 1 + galleryData.length) % galleryData.length;
+        updateLightboxContent();
+    }
+
+    function nextLightboxImage() {
+        if (!galleryData.length) return;
+        currentPhotoIndex = (currentPhotoIndex + 1) % galleryData.length;
+        updateLightboxContent();
+    }
+
+    document.addEventListener("keydown", function(e) {
+        const modal = document.getElementById("lightboxModal");
+        if (modal && !modal.classList.contains("hidden")) {
+            if (e.key === "ArrowLeft") prevLightboxImage();
+            if (e.key === "ArrowRight") nextLightboxImage();
+            if (e.key === "Escape") closeLightbox();
+        }
+    });
+</script>
+
+<!-- Navigation Controls Bar -->
+{% include "components/navigation_controls.html" %}
+
+<!-- Footer Component -->
+{% include "components/footer.html" %}
+{% endblock %}

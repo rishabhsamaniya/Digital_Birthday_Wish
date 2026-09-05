@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}🎉 Birthday Page Created — {{ profile.full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes confetti-fall {
+        0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(120vh) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece {
+        position: fixed;
+        width: 10px; height: 10px;
+        border-radius: 2px;
+        animation: confetti-fall linear forwards;
+        pointer-events: none;
+        z-index: 9999;
+    }
+    @keyframes pop-in {
+        0% { transform: scale(0.5); opacity: 0; }
+        70% { transform: scale(1.05); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .pop-in { animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    .password-reveal {
+        font-family: monospace;
+        font-size: 1.75rem;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        background: linear-gradient(135deg, #fbbf24, #f43f5e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .copy-btn { transition: all 0.2s; }
+    .copy-btn:active { transform: scale(0.95); }
+    .share-card { transition: all 0.2s; }
+    .share-card:hover { transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-12 px-4">
+
+    <!-- Big Success Header -->
+    <div class="text-center mb-10 pop-in">
+        <div class="text-6xl mb-4 select-none">🎉</div>
+        <h1 class="font-serif text-3xl sm:text-4xl font-extrabold text-white mb-2">
+            Birthday Page is Ready!
+        </h1>
+        <p class="text-gray-300 text-base">
+            Your magical birthday surprise for <span class="text-rose-300 font-bold">{{ profile.full_name }}</span> is live!
+            Share the link and password below.
+        </p>
+    </div>
+
+    <!-- URL + Password card -->
+    <div class="glass-card rounded-3xl p-6 sm:p-8 border border-white/15 shadow-2xl backdrop-blur-xl bg-white/5 space-y-6 mb-6">
+
+        <!-- Sharing URL -->
+        <div>
+            <label class="block text-xs font-bold text-rose-300 mb-2 uppercase tracking-widest">🔗 Birthday Page URL</label>
+            <div class="flex items-center gap-2">
+                <input
+                    type="text"
+                    id="shareUrl"
+                    readonly
+                    value="{{ profile_url }}"
+                    class="flex-1 px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white text-sm font-mono focus:outline-none"
+                >
+                <button onclick="copyText('shareUrl', this)" class="copy-btn shrink-0 px-4 py-3 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">
+                    📋 Copy
+                </button>
+            </div>
+        </div>
+
+        <!-- Access Password -->
+        <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center">
+            <label class="block text-xs font-bold text-amber-300 mb-3 uppercase tracking-widest">🔑 Page Access Password</label>
+            <div class="password-reveal mb-3" id="plainPassword">{{ plain_password }}</div>
+            <p class="text-xs text-amber-100/60 mb-3">
+                Share this password with <strong>{{ profile.nickname|default:profile.full_name }}</strong> so they can unlock their surprise.
+                It is their <strong>first name + birth year</strong>.
+            </p>
+            <button onclick="copyText('plainPassword', this)" class="copy-btn px-6 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 text-sm font-bold hover:bg-amber-500/30 transition-all">
+                📋 Copy Password
+            </button>
+        </div>
+
+        <!-- QR Code -->
+        <div class="text-center">
+            <label class="block text-xs font-bold text-gray-300 mb-3 uppercase tracking-widest">📱 QR Code</label>
+            <div class="inline-block p-3 bg-white rounded-2xl shadow-xl mb-3">
+                <img src="/{{ profile.slug }}/qr/" alt="Birthday Page QR Code" class="w-40 h-40">
+            </div>
+            <div class="flex justify-center gap-3">
+                <a href="/{{ profile.slug }}/qr/" download="{{ profile.slug }}-birthday-qr.png" class="px-4 py-2 rounded-xl bg-white/10 border border-white/15 text-gray-300 text-sm font-bold hover:bg-white/20 transition-all">
+                    ⬇️ Download QR
+                </a>
+            </div>
+        </div>
+
+        <!-- Recipient-only Wishes Share -->
+        <div class="mt-6 text-center">
+            <label class="block text-xs font-bold text-rose-300 mb-2 uppercase tracking-widest">👀 Recipient View (Wishes Wall)</label>
+            <div class="flex items-center gap-2 justify-center mb-3">
+                <input type="text" id="publicWishUrl" readonly value="{{ public_wish_url }}" class="px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white text-sm font-mono focus:outline-none w-80">
+                <button onclick="copyText('publicWishUrl', this)" class="copy-btn px-4 py-3 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">📋 Copy</button>
+            </div>
+            <div class="inline-block p-3 bg-white rounded-2xl shadow-xl mb-3">
+                <img src="/{{ profile.slug }}/qr/wish/" alt="Recipient Wishes QR" class="w-32 h-32">
+            </div>
+            <div>
+                <a href="/{{ profile.slug }}/qr/wish/" download="{{ profile.slug }}-wishes-qr.png" class="px-4 py-2 rounded-xl bg-white/10 border border-white/15 text-gray-300 text-sm font-bold hover:bg-white/20 transition-all">⬇️ Download QR</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Share Buttons -->
+    <div class="glass-card rounded-2xl p-5 border border-white/10 bg-white/5 mb-6">
+        <p class="text-xs font-bold text-gray-300 mb-3 uppercase tracking-widest">📤 Quick Share</p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {% with msg="🎂 Your Birthday Surprise is ready! Open this link and enter the password to begin 🎉%0A%0ALink: "|add:profile_url|urlencode%}
+            <a href="https://wa.me/?text=🎂 Birthday Surprise!%0AOpen: {{ profile_url }}%0APassword: {{ plain_password }}" target="_blank" class="share-card flex flex-col items-center gap-1 py-3 px-2 rounded-xl bg-green-500/10 border border-green-500/20 text-green-300 text-xs font-bold hover:bg-green-500/20 transition-all">
+                <span class="text-xl">💬</span> WhatsApp
+            </a>
+            {% endwith %}
+            <a href="https://t.me/share/url?url={{ profile_url|urlencode }}&text=🎂 Your birthday surprise is ready! Password: {{ plain_password }}" target="_blank" class="share-card flex flex-col items-center gap-1 py-3 px-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-bold hover:bg-blue-500/20 transition-all">
+                <span class="text-xl">✈️</span> Telegram
+            </a>
+            <a href="mailto:?subject=🎂 Your Birthday Surprise!&body=Hi {{ profile.nickname|default:profile.full_name }}!%0A%0AYour birthday surprise is ready!%0A%0ALink: {{ profile_url }}%0APassword: {{ plain_password }}%0A%0AOpen with love 💖" class="share-card flex flex-col items-center gap-1 py-3 px-2 rounded-xl bg-gray-500/10 border border-gray-500/20 text-gray-300 text-xs font-bold hover:bg-gray-500/20 transition-all">
+                <span class="text-xl">📧</span> Email
+            </a>
+            <a href="/{{ profile.slug }}/" target="_blank" class="share-card flex flex-col items-center gap-1 py-3 px-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-bold hover:bg-rose-500/20 transition-all">
+                <span class="text-xl">👁️</span> Preview
+            </a>
+        </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex flex-wrap gap-3 justify-center">
+        <a href="{% url 'profiles:my_profiles' %}" class="px-6 py-3 rounded-full bg-white/10 border border-white/15 text-white text-sm font-bold hover:bg-white/20 transition-all">
+            📋 My Pages
+        </a>
+        <a href="{% url 'profiles:create_wizard' %}" class="px-6 py-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-bold shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 transition-all">
+            ✨ Create Another Page
+        </a>
+    </div>
+
+</div>
+
+<script>
+    // Copy text to clipboard
+    function copyText(elementId, btn) {
+        const el = document.getElementById(elementId);
+        const text = el.value || el.textContent.trim();
+        navigator.clipboard.writeText(text).then(() => {
+            const original = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            btn.style.background = 'rgba(34,197,94,0.2)';
+            btn.style.borderColor = 'rgba(34,197,94,0.4)';
+            btn.style.color = '#86efac';
+            setTimeout(() => {
+                btn.textContent = original;
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }, 2000);
+        });
+    }
+
+    // Confetti celebration on load
+    function launchConfetti() {
+        const colors = ['#f43f5e', '#fb923c', '#fbbf24', '#4ade80', '#60a5fa', '#e879f9'];
+        for (let i = 0; i < 60; i++) {
+            const el = document.createElement('div');
+            el.className = 'confetti-piece';
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.top = '-20px';
+            el.style.background = colors[Math.floor(Math.random() * colors.length)];
+            el.style.animationDuration = (Math.random() * 2.5 + 2) + 's';
+            el.style.animationDelay = (Math.random() * 1.5) + 's';
+            el.style.width = (Math.random() * 10 + 6) + 'px';
+            el.style.height = (Math.random() * 10 + 6) + 'px';
+            el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 5000);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', launchConfetti);
+</script>
+{% endblock %}

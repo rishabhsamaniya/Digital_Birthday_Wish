@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Video Messages — {{ profile.full_name }} 🎥{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen px-4 pt-28 pb-36 relative overflow-hidden max-w-6xl mx-auto">
+    
+    <!-- Section Header -->
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-12 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-color);">
+            ✨ Step 8 • Video Messages ✨
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight" style="color: var(--text-color);">
+            Heartfelt Video Wishes
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            Watch sweet birthday messages from friends, family, and loved ones dedicated to {{ profile.nickname|default:profile.full_name }}.
+        </p>
+    </div>
+
+    <!-- Video Grid -->
+    {% if videos %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {% for video in videos %}
+                <div class="glass-card glass-card-hover rounded-3xl overflow-hidden flex flex-col justify-between reveal-on-scroll">
+                    
+                    <!-- Video Player Container -->
+                    <div class="relative w-full aspect-video bg-slate-950 overflow-hidden">
+                        {% if video.video_file %}
+                            <video controls
+                                   {% if video.thumbnail %}poster="{{ video.thumbnail.url }}"{% endif %}
+                                   class="w-full h-full object-cover">
+                                <source src="{{ video.video_file.url }}" type="video/mp4">
+                                Your browser does not support video playback.
+                            </video>
+                        {% elif video.embed_url %}
+                            <iframe src="{{ video.embed_url }}"
+                                    title="Video message from {{ video.sender_name }}"
+                                    class="w-full h-full border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen>
+                            </iframe>
+                        {% else %}
+                            <div class="w-full h-full flex flex-col items-center justify-center text-slate-500 space-y-2">
+                                <span class="text-4xl">🎥</span>
+                                <span class="text-xs">No video stream available</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-serif font-bold text-xl text-white">{{ video.sender_name }}</h3>
+                                {% if video.relationship %}
+                                    <span class="text-[11px] font-mono px-3 py-1 rounded-full bg-white/10 text-amber-300">
+                                        {{ video.relationship }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            {% if video.message_text %}
+                                <p class="text-slate-300 text-sm font-light leading-relaxed italic">
+                                    "{{ video.message_text }}"
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-rose-400">
+                            <span>🎥 Video Message #{{ forloop.counter }}</span>
+                            <span>With Love ❤️</span>
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State Fallback -->
+        <div class="glass-card rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 animate-zoom-in">
+            <div class="text-5xl animate-bounce">🎬</div>
+            <h2 class="font-serif text-2xl font-bold text-white">Wishes Sealed with Love</h2>
+            <p class="text-slate-300 text-sm font-light leading-relaxed">
+                Warm greetings and blessings surround {{ profile.full_name }} on this extraordinary day.
+            </p>
+        </div>
+    {% endif %}
+
+</section>
+
+<!-- Navigation Controls Bar -->
+{% include "components/navigation_controls.html" %}
+
+<!-- Footer Component -->
+{% include "components/footer.html" %}
+{% endblock %}

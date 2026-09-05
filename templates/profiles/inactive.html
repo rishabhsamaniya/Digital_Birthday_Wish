@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Private Experience — {{ profile.full_name }}{% endblock %}
+
+{% block content %}
+<section class="min-h-screen flex flex-col items-center justify-center text-center px-4 py-16 relative">
+    <div class="max-w-xl w-full backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-6">
+        
+        <div class="w-20 h-20 mx-auto rounded-full bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-4xl">
+            🔒
+        </div>
+
+        <h1 class="font-serif text-3xl sm:text-4xl font-bold" style="color: var(--text-color);">
+            Private Experience
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            This birthday profile for <span class="font-semibold text-rose-300">{{ profile.full_name }}</span> is currently inactive or private.
+        </p>
+
+        <div class="pt-4">
+            <a href="/" class="px-6 py-2.5 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-all">
+                Return to Home
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

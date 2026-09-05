@@ -1,0 +1,754 @@
+{% extends "base.html" %}
+
+{% block title %}Create Birthday Wish Page ✨{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-tab { transition: all 0.3s ease; }
+    .section-tab.active { background: linear-gradient(135deg, #e11d48, #f59e0b); color: #fff; box-shadow: 0 4px 20px rgba(225,29,72,0.35); }
+    .section-panel { display: none; }
+    .section-panel.active { display: block; }
+    .form-section-header { font-size: 1.1rem; font-weight: 700; color: #fda4af; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .formset-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; position: relative; }
+    .formset-card .delete-btn { position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); border-radius: 0.5rem; padding: 0.25rem 0.6rem; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+    .formset-card .delete-btn:hover { background: rgba(239,68,68,0.3); }
+    .add-more-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; border-radius: 0.75rem; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); color: #94a3b8; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; }
+    .add-more-btn:hover { background: rgba(225,29,72,0.1); border-color: rgba(225,29,72,0.4); color: #fda4af; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s; }
+    .step-dot.done { background: #22c55e; }
+    .step-dot.active { background: #e11d48; width: 20px; border-radius: 4px; }
+    .ai-chip { cursor: pointer; transition: all 0.2s; }
+    .ai-chip:hover { background: rgba(225,29,72,0.2) !important; border-color: rgba(225,29,72,0.4) !important; }
+
+    /* field errors */
+    .errorlist { color: #fca5a5; font-size: 0.7rem; margin-top: 0.25rem; list-style: none; padding: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-4">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold mb-4">
+            <span class="animate-pulse">✨</span> Birthday Wish Page Creator
+        </div>
+        <h1 class="font-serif text-3xl sm:text-4xl font-extrabold text-white">Create Your Birthday Surprise</h1>
+        <p class="text-gray-400 text-sm mt-2">Fill all sections to build a personalised 9-step birthday journey</p>
+    </div>
+
+    <!-- Section Progress Dots -->
+    <div class="flex items-center justify-center gap-2 mb-8" id="progressDots">
+        {% for tab in "12345678" %}
+        <div class="step-dot {% if forloop.first %}active{% endif %}" id="dot-{{ tab }}"></div>
+        {% endfor %}
+    </div>
+
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for msg in messages %}
+        <div class="px-4 py-3 rounded-xl text-sm {% if msg.tags == 'error' %}bg-rose-500/15 text-rose-300 border border-rose-500/25{% else %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/25{% endif %}">
+            {{ msg }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# Render non-field form errors (so user sees what failed) #}
+    {% if form.non_field_errors %}
+    <div class="mb-4">
+        <ul class="errorlist">
+            {% for err in form.non_field_errors %}
+            <li>{{ err }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Section Tabs Navigation -->
+    <div class="flex flex-wrap gap-2 mb-6 justify-center">
+        <button type="button" onclick="switchTab(1)" class="section-tab active text-xs font-bold px-4 py-2 rounded-full bg-white/8 border border-white/10 text-gray-300" id="tab-1">① Basic Info</button>
+        <button type="button" onclick="switchTab(2)" class="section-tab text-xs font-bold px-4 py-2 rounded-full bg-white/8 border border-white/10 text-gray-300" id="tab-2">② Memories</button>
+        <button type="button" onclick="switchTab(3)" class="section-tab text-xs font-bold px-4 py-2 rounded-full bg-white/8 border border-white/10 text-gray-300" id="tab-3">③ Journey</button>
+        <button type="button" onclick="switchTab(4)" class="section-tab text-xs font-bold px-4 py-2 rounded-full bg-white/8 border border-white/10 text-gray-300" id="tab-4">④ Love Notes</button>
+        <button type="button" onclick="switchTab(5)" class="section-tab text-xs font-bold px-4 py-2 rounded-full bg-white/8 border border-white/10 text-gray-300" id="tab-5">⑤ Gallery</button>
+        <button type="button" onclick="switchTab(6)" class="section-tab text-xs font-bold px-4 py-2 rounded-full bg-white/8 border border-white/10 text-gray-300" id="tab-6">⑥ Videos</button>
+        <button type="button" onclick="switchTab(7)" class="section-tab text-xs font-bold px-4 py-2 rounded-full bg-white/8 border border-white/10 text-gray-300" id="tab-7">⑦ Messages</button>
+        <button type="button" onclick="switchTab(8)" class="section-tab text-xs font-bold px-4 py-2 rounded-full bg-white/8 border border-white/10 text-gray-300" id="tab-8">⑧ Music</button>
+    </div>
+
+    <!-- BIG FORM — all sections inside one form tag -->
+    <form method="post" enctype="multipart/form-data" id="mainForm">
+        {% csrf_token %}
+
+        <!-- ──────────────────────────────────────────── -->
+        <!-- SECTION 1: BASIC INFO -->
+        <!-- ──────────────────────────────────────────── -->
+        <div class="section-panel active glass-card rounded-2xl p-6 border border-white/10" id="panel-1">
+            <div class="form-section-header">🎂 Basic Birthday Information</div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Full Name -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Full Name *</label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}<ul class="errorlist">{% for e in form.full_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <!-- Nickname -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Nickname / Pet Name</label>
+                    {{ form.nickname }}
+                </div>
+                <!-- Slug -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">URL Slug * <span class="text-gray-500">(e.g. sneha → /sneha/)</span></label>
+                    {{ form.slug }}
+                    {% if form.slug.errors %}<ul class="errorlist">{% for e in form.slug.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <!-- Birthday Date -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Birthday Date *</label>
+                    {{ form.birthday_date }}
+                    {% if form.birthday_date.errors %}<ul class="errorlist">{% for e in form.birthday_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <!-- Theme -->
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Visual Theme</label>
+                    {{ form.theme }}
+                </div>
+                <!-- Profile Image -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Profile Photo</label>
+                    {{ form.profile_image }}
+                </div>
+                <!-- Cover Image -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Cover Banner Image</label>
+                    {{ form.cover_image }}
+                </div>
+            </div>
+
+            <!-- Password info callout -->
+            <div class="mt-5 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <p class="text-xs text-amber-200 font-semibold">🔑 Auto-Generated Access Password</p>
+                <p class="text-xs text-amber-100/70 mt-1">Your birthday page will be password-protected. The password is auto-set as: <code class="bg-black/30 px-1 rounded">first_name + birth_year</code></p>
+                <p class="text-xs text-amber-200 mt-1 font-mono" id="passwordPreview">→ Enter name and birthday above to preview</p>
+            </div>
+
+            <div class="mt-5 flex justify-end">
+                <button type="button" onclick="switchTab(2)" class="px-6 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">Next: Memories →</button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────────── -->
+        <!-- SECTION 2: OUR FAVORITE MEMORIES -->
+        <!-- ──────────────────────────────────────────── -->
+        <div class="section-panel glass-card rounded-2xl p-6 border border-white/10" id="panel-2">
+            <div class="form-section-header">📸 Our Favorite Memories</div>
+            <p class="text-xs text-gray-400 mb-4">Add up to 5 special memories with photos and stories.</p>
+
+            {{ memory_formset.management_form }}
+            {% if memory_formset.non_form_errors %}
+            <ul class="errorlist">
+                {% for err in memory_formset.non_form_errors %}
+                <li>{{ err }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <div id="memories-container">
+                {% for mform in memory_formset %}
+                <div class="formset-card memory-item" id="memory-{{ forloop.counter0 }}">
+                    <div class="text-xs font-bold text-rose-300 mb-3">Memory #{{ forloop.counter }}</div>
+                    {{ mform.id }}
+                    {% if mform.DELETE %}
+                    <label class="hidden">{{ mform.DELETE }}</label>
+                    <button type="button" onclick="deleteFormsetItem(this, '{{ mform.DELETE.html_name }}')" class="delete-btn">✕ Remove</button>
+                    {% endif %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2"><label class="block text-xs text-gray-400 mb-1">Title *</label>
+                            {{ mform.title }}
+                            {% if mform.title.errors %}
+                            <ul class="errorlist">{% for e in mform.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Date</label>
+                            {{ mform.memory_date }}
+                            {% if mform.memory_date.errors %}
+                            <ul class="errorlist">{% for e in mform.memory_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Photo</label>
+                            {{ mform.image }}
+                            {% if mform.image.errors %}
+                            <ul class="errorlist">{% for e in mform.image.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs text-gray-400 mb-1">Story</label>
+                            {{ mform.description }}
+                            {% if mform.description.errors %}
+                            <ul class="errorlist">{% for e in mform.description.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="add-more-btn" onclick="addFormsetRow('memories', 'memories')">+ Add Another Memory</button>
+
+            <div class="mt-5 flex justify-between">
+                <button type="button" onclick="switchTab(1)" class="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-bold hover:bg-white/10 transition-all">← Basic Info</button>
+                <button type="button" onclick="switchTab(3)" class="px-6 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">Next: Journey →</button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────────── -->
+        <!-- SECTION 3: OUR JOURNEY TOGETHER (TIMELINE) -->
+        <!-- ──────────────────────────────────────────── -->
+        <div class="section-panel glass-card rounded-2xl p-6 border border-white/10" id="panel-3">
+            <div class="form-section-header">🗺️ Our Journey Together</div>
+            <p class="text-xs text-gray-400 mb-4">Add timeline milestones — first meeting, trips, anniversaries, etc.</p>
+
+            {{ timeline_formset.management_form }}
+            {% if timeline_formset.non_form_errors %}
+            <ul class="errorlist">
+                {% for err in timeline_formset.non_form_errors %}
+                <li>{{ err }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <div id="timeline-container">
+                {% for tform in timeline_formset %}
+                <div class="formset-card">
+                    <div class="text-xs font-bold text-purple-300 mb-3">Milestone #{{ forloop.counter }}</div>
+                    {{ tform.id }}
+                    {% if tform.DELETE %}
+                    <label class="hidden">{{ tform.DELETE }}</label>
+                    <button type="button" onclick="deleteFormsetItem(this, '{{ tform.DELETE.html_name }}')" class="delete-btn">✕ Remove</button>
+                    {% endif %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Event Title *</label>
+                            {{ tform.title }}
+                            {% if tform.title.errors %}
+                            <ul class="errorlist">{% for e in tform.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Date *</label>
+                            {{ tform.event_date }}
+                            {% if tform.event_date.errors %}
+                            <ul class="errorlist">{% for e in tform.event_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Icon Emoji</label>
+                            {{ tform.icon }}
+                            {% if tform.icon.errors %}
+                            <ul class="errorlist">{% for e in tform.icon.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Photo (optional)</label>
+                            {{ tform.image }}
+                            {% if tform.image.errors %}
+                            <ul class="errorlist">{% for e in tform.image.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs text-gray-400 mb-1">Story</label>
+                            {{ tform.description }}
+                            {% if tform.description.errors %}
+                            <ul class="errorlist">{% for e in tform.description.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="add-more-btn" onclick="addFormsetRow('timeline', 'timeline')">+ Add Milestone</button>
+
+            <div class="mt-5 flex justify-between">
+                <button type="button" onclick="switchTab(2)" class="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-bold hover:bg-white/10 transition-all">← Memories</button>
+                <button type="button" onclick="switchTab(4)" class="px-6 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">Next: Love Notes →</button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────────── -->
+        <!-- SECTION 4: THINGS I LOVE ABOUT YOU -->
+        <!-- ──────────────────────────────────────────── -->
+        <div class="section-panel glass-card rounded-2xl p-6 border border-white/10" id="panel-4">
+            <div class="form-section-header">💌 Things I Love About You</div>
+            <p class="text-xs text-gray-400 mb-4">Write up to 10 personal love notes — one per quality or trait you adore.</p>
+
+            {{ love_note_formset.management_form }}
+            {% if love_note_formset.non_form_errors %}
+            <ul class="errorlist">
+                {% for err in love_note_formset.non_form_errors %}
+                <li>{{ err }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <div id="love_notes-container">
+                {% for lform in love_note_formset %}
+                <div class="formset-card">
+                    <div class="text-xs font-bold text-pink-300 mb-3">Love Note #{{ forloop.counter }}</div>
+                    {{ lform.id }}
+                    {% if lform.DELETE %}
+                    <label class="hidden">{{ lform.DELETE }}</label>
+                    <button type="button" onclick="deleteFormsetItem(this, '{{ lform.DELETE.html_name }}')" class="delete-btn">✕ Remove</button>
+                    {% endif %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Title (What I Love)</label>
+                            {{ lform.title }}
+                            {% if lform.title.errors %}
+                            <ul class="errorlist">{% for e in lform.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Icon Emoji</label>
+                            {{ lform.icon }}
+                            {% if lform.icon.errors %}
+                            <ul class="errorlist">{% for e in lform.icon.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs text-gray-400 mb-1">Personal Note</label>
+                            {{ lform.message }}
+                            {% if lform.message.errors %}
+                            <ul class="errorlist">{% for e in lform.message.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="add-more-btn" onclick="addFormsetRow('love_notes', 'love_notes')">+ Add Love Note</button>
+
+            <div class="mt-5 flex justify-between">
+                <button type="button" onclick="switchTab(3)" class="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-bold hover:bg-white/10 transition-all">← Journey</button>
+                <button type="button" onclick="switchTab(5)" class="px-6 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">Next: Gallery →</button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────────── -->
+        <!-- SECTION 5: CAPTURED MOMENTS (GALLERY) -->
+        <!-- ──────────────────────────────────────────── -->
+        <div class="section-panel glass-card rounded-2xl p-6 border border-white/10" id="panel-5">
+            <div class="form-section-header">🖼️ Captured Moments</div>
+            <p class="text-xs text-gray-400 mb-4">Upload up to 10 photos with optional captions.</p>
+
+            {{ gallery_formset.management_form }}
+            {% if gallery_formset.non_form_errors %}
+            <ul class="errorlist">
+                {% for err in gallery_formset.non_form_errors %}
+                <li>{{ err }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <div id="gallery-container">
+                {% for gform in gallery_formset %}
+                <div class="formset-card">
+                    <div class="text-xs font-bold text-amber-300 mb-3">Photo #{{ forloop.counter }}</div>
+                    {{ gform.id }}
+                    {% if gform.DELETE %}
+                    <label class="hidden">{{ gform.DELETE }}</label>
+                    <button type="button" onclick="deleteFormsetItem(this, '{{ gform.DELETE.html_name }}')" class="delete-btn">✕ Remove</button>
+                    {% endif %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs text-gray-400 mb-1">📷 Photo *</label>
+                            {{ gform.image }}
+                            {% if gform.image.errors %}
+                            <ul class="errorlist">{% for e in gform.image.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Title (optional)</label>
+                            {{ gform.title }}
+                            {% if gform.title.errors %}
+                            <ul class="errorlist">{% for e in gform.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Caption (optional)</label>
+                            {{ gform.caption }}
+                            {% if gform.caption.errors %}
+                            <ul class="errorlist">{% for e in gform.caption.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="add-more-btn" onclick="addFormsetRow('gallery', 'gallery')">+ Add Photo</button>
+
+            <div class="mt-5 flex justify-between">
+                <button type="button" onclick="switchTab(4)" class="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-bold hover:bg-white/10 transition-all">← Love Notes</button>
+                <button type="button" onclick="switchTab(6)" class="px-6 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">Next: Videos →</button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────────── -->
+        <!-- SECTION 6: HEARTFELT VIDEO WISHES -->
+        <!-- ──────────────────────────────────────────── -->
+        <div class="section-panel glass-card rounded-2xl p-6 border border-white/10" id="panel-6">
+            <div class="form-section-header">🎬 Heartfelt Video Wishes</div>
+            <p class="text-xs text-gray-400 mb-4">Add up to 3 video wishes — YouTube links or direct uploads.</p>
+
+            {{ video_formset.management_form }}
+            {% if video_formset.non_form_errors %}
+            <ul class="errorlist">
+                {% for err in video_formset.non_form_errors %}
+                <li>{{ err }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            <div id="videos-container">
+                {% for vform in video_formset %}
+                <div class="formset-card">
+                    <div class="text-xs font-bold text-red-300 mb-3">Video #{{ forloop.counter }}</div>
+                    {{ vform.id }}
+                    {% if vform.DELETE %}
+                    <label class="hidden">{{ vform.DELETE }}</label>
+                    <button type="button" onclick="deleteFormsetItem(this, '{{ vform.DELETE.html_name }}')" class="delete-btn">✕ Remove</button>
+                    {% endif %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Sender Name *</label>
+                            {{ vform.sender_name }}
+                            {% if vform.sender_name.errors %}
+                            <ul class="errorlist">{% for e in vform.sender_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Relationship</label>
+                            {{ vform.relationship }}
+                            {% if vform.relationship.errors %}
+                            <ul class="errorlist">{% for e in vform.relationship.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs text-gray-400 mb-1">YouTube / Vimeo URL</label>
+                            {{ vform.video_url }}
+                            {% if vform.video_url.errors %}
+                            <ul class="errorlist">{% for e in vform.video_url.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Or Upload Video File</label>
+                            {{ vform.video_file }}
+                            {% if vform.video_file.errors %}
+                            <ul class="errorlist">{% for e in vform.video_file.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Thumbnail (optional)</label>
+                            {{ vform.thumbnail }}
+                            {% if vform.thumbnail.errors %}
+                            <ul class="errorlist">{% for e in vform.thumbnail.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs text-gray-400 mb-1">Caption / Note</label>
+                            {{ vform.message_text }}
+                            {% if vform.message_text.errors %}
+                            <ul class="errorlist">{% for e in vform.message_text.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="add-more-btn" onclick="addFormsetRow('videos', 'videos')">+ Add Video</button>
+
+            <div class="mt-5 flex justify-between">
+                <button type="button" onclick="switchTab(5)" class="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-bold hover:bg-white/10 transition-all">← Gallery</button>
+                <button type="button" onclick="switchTab(7)" class="px-6 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">Next: Messages →</button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────────── -->
+        <!-- SECTION 7: MESSAGES + SECRET -->
+        <!-- ──────────────────────────────────────────── -->
+        <div class="section-panel glass-card rounded-2xl p-6 border border-white/10" id="panel-7">
+            <div class="form-section-header">💬 Messages & Secret</div>
+
+            <!-- AI Suggestions -->
+            <div class="mb-5">
+                <p class="text-xs font-semibold text-gray-300 mb-2">✨ AI Message Suggestions — click to use:</p>
+                <div class="flex flex-wrap gap-2">
+                    {% for msg in ai_suggestions %}
+                    <span class="ai-chip text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 cursor-pointer" onclick="useAiSuggestion(this)">{{ msg.message|truncatechars:60 }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Intro / Welcome Message</label>
+                    {{ form.intro_message }}
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Final / Closing Birthday Message</label>
+                    {{ form.final_message }}
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Special Personal Letter</label>
+                    {{ form.special_letter }}
+                </div>
+            </div>
+
+            <!-- Secret Message -->
+            <div class="mt-6 p-4 rounded-xl bg-purple-500/5 border border-purple-500/20">
+                <p class="text-xs font-bold text-purple-300 mb-3">🔒 Secret Message (Optional)</p>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Secret Message Text</label>
+                        <textarea name="secret_text" rows="3" class="w-full px-3 py-2.5 rounded-xl bg-black/40 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-purple-400 text-sm resize-none" placeholder="A surprise message hidden behind a PIN code..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">PIN Code (4-6 digits)</label>
+                            <input type="text" name="pin_code" maxlength="6" class="w-full px-3 py-2.5 rounded-xl bg-black/40 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-purple-400 text-sm text-center tracking-widest" placeholder="e.g. 1234">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">PIN Hint</label>
+                            <input type="text" name="hint" class="w-full px-3 py-2.5 rounded-xl bg-black/40 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-purple-400 text-sm" placeholder="e.g. Our anniversary date">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 flex justify-between">
+                <button type="button" onclick="switchTab(6)" class="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-bold hover:bg-white/10 transition-all">← Videos</button>
+                <button type="button" onclick="switchTab(8)" class="px-6 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-sm font-bold hover:bg-rose-500/30 transition-all">Next: Music →</button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────────── -->
+        <!-- SECTION 8: MUSIC -->
+        <!-- ──────────────────────────────────────────── -->
+        <div class="section-panel glass-card rounded-2xl p-6 border border-white/10" id="panel-8">
+            <div class="form-section-header">🎵 Background Music</div>
+            <p class="text-xs text-gray-400 mb-4">Add a background song that plays throughout the experience.</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Song Title</label>
+                    <input type="text" name="music_title" class="w-full px-3 py-2.5 rounded-xl bg-black/40 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 text-sm" placeholder="e.g., Tum Se Hi - Jab We Met">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">YouTube / YouTube Music URL</label>
+                    <input type="url" name="music_url" class="w-full px-3 py-2.5 rounded-xl bg-black/40 border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 text-sm" placeholder="https://youtube.com/...">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">Or Upload MP3 File</label>
+                    <input type="file" name="music_file" accept=".mp3,.wav,.ogg,.aac" class="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-rose-500/20 file:text-rose-300 hover:file:bg-rose-500/30 cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Final Submit -->
+            <div class="mt-8 pt-5 border-t border-white/10 text-center">
+                <p class="text-xs text-gray-400 mb-4">✅ All sections done? Click below to create the birthday page!</p>
+                <button type="submit" id="submitBtn" class="inline-flex items-center gap-3 px-10 py-4 rounded-full bg-gradient-to-r from-rose-500 via-pink-600 to-amber-400 text-white font-extrabold text-base shadow-xl shadow-rose-500/30 hover:shadow-rose-500/50 transition-all transform hover:-translate-y-1">
+                    <span>🎉</span> Create Birthday Wish Page
+                </button>
+            </div>
+
+            <div class="mt-4 flex justify-start">
+                <button type="button" onclick="switchTab(7)" class="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-bold hover:bg-white/10 transition-all">← Messages</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    const TOTAL_TABS = 8;
+    let currentTab = 1;
+
+    function switchTab(num) {
+        // Save current state and disable HTML5 validation so users can navigate without filling required fields
+        try {
+            saveFormState();
+            const f = document.getElementById('mainForm');
+            if (f) f.noValidate = true;
+        } catch (e) {
+            // ignore
+        }
+
+        // Hide all panels
+        document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+
+        // Show target
+        document.getElementById('panel-' + num).classList.add('active');
+        document.getElementById('tab-' + num).classList.add('active');
+
+        // Update progress dots
+        for (let i = 1; i <= TOTAL_TABS; i++) {
+            const dot = document.getElementById('dot-' + i);
+            dot.classList.remove('done', 'active');
+            if (i < num) dot.classList.add('done');
+            else if (i === num) dot.classList.add('active');
+        }
+
+        currentTab = num;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // AI suggestion click → fill final_message textarea
+    function useAiSuggestion(el) {
+        const target = document.getElementById('id_final_message') || document.querySelector('[name="final_message"]');
+        if (target) {
+            target.value = el.textContent.trim();
+            target.focus();
+        }
+    }
+
+    // Delete formset item (mark for deletion but keep in DOM)
+    function deleteFormsetItem(btn, deleteName) {
+        const card = btn.closest('.formset-card');
+        const deleteInput = document.querySelector(`input[name="${deleteName}"]`);
+        if (deleteInput) {
+            deleteInput.checked = true;
+        }
+        card.style.opacity = '0.3';
+        card.style.pointerEvents = 'none';
+        btn.textContent = '✓ Removed';
+    }
+
+    // Add new formset row (clone template pattern)
+    function addFormsetRow(prefix, containerId) {
+        const container = document.getElementById(containerId + '-container');
+        const mgmtTotal = document.getElementById('id_' + prefix + '-TOTAL_FORMS');
+        if (!mgmtTotal || !container) return;
+
+        const idx = parseInt(mgmtTotal.value);
+        const maxForms = parseInt(document.getElementById('id_' + prefix + '-MAX_NUM_FORMS')?.value || 10);
+        if (idx >= maxForms) {
+            alert(`Maximum ${maxForms} items allowed for this section.`);
+            return;
+        }
+
+        // Clone the first card and update field indices
+        const firstCard = container.querySelector('.formset-card');
+        if (!firstCard) return;
+
+        const clone = firstCard.cloneNode(true);
+
+        // Clear all input values in clone
+        clone.querySelectorAll('input, textarea, select').forEach(field => {
+            if (field.type === 'checkbox') field.checked = false;
+            else field.value = '';
+        });
+
+        // Update field name/id indices
+        clone.innerHTML = clone.innerHTML.replace(new RegExp(`${prefix}-(\\d+)-`, 'g'), `${prefix}-${idx}-`);
+        clone.style.opacity = '1';
+        clone.style.pointerEvents = 'auto';
+
+        // Update card label
+        const label = clone.querySelector('.text-xs.font-bold');
+        if (label) label.textContent = label.textContent.replace(/#\d+/, `#${idx + 1}`);
+
+        container.appendChild(clone);
+        mgmtTotal.value = idx + 1;
+    }
+
+    // Auto-preview password as user types name/date
+    function updatePasswordPreview() {
+        const nameInput = document.querySelector('[name="full_name"]');
+        const dateInput = document.querySelector('[name="birthday_date"]');
+        const preview = document.getElementById('passwordPreview');
+        if (!nameInput || !dateInput || !preview) return;
+
+        const name = nameInput.value.trim().split(' ')[0].toLowerCase();
+        const dateVal = dateInput.value;
+        const year = dateVal ? new Date(dateVal).getFullYear() : '';
+
+        if (name && year) {
+            preview.textContent = `→ Password will be: ${name}${year}`;
+            preview.style.color = '#fbbf24';
+        } else {
+            preview.textContent = '→ Enter name and birthday above to preview';
+            preview.style.color = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const nameInput = document.querySelector('[name="full_name"]');
+        const dateInput = document.querySelector('[name="birthday_date"]');
+        if (nameInput) nameInput.addEventListener('input', updatePasswordPreview);
+        if (dateInput) dateInput.addEventListener('change', updatePasswordPreview);
+
+        // Load saved draft state (if any)
+        try { loadFormState(); } catch (e) { /* ignore */ }
+
+        // Disable double-submit and ensure final submit validates
+        const mainForm = document.getElementById('mainForm');
+        if (mainForm) {
+            mainForm.addEventListener('submit', (ev) => {
+                // Re-enable validation for final submit
+                mainForm.noValidate = false;
+                try { saveFormState(); } catch (e) { /* ignore */ }
+                const btn = document.getElementById('submitBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = '⏳ Creating...';
+                }
+            });
+        }
+
+        // If server-side validation produced errors, auto-open first panel with an error
+        const firstError = document.querySelector('.errorlist');
+        if (firstError) {
+            const panel = firstError.closest('.section-panel');
+            if (panel && panel.id) {
+                const num = panel.id.replace('panel-', '');
+                switchTab(Number(num));
+            } else {
+                // fallback to first panel
+                switchTab(1);
+            }
+        }
+    });
+
+    // Persist simple form fields (no files) to localStorage so user can move between tabs
+    function saveFormState() {
+        const form = document.getElementById('mainForm');
+        if (!form) return;
+        const data = {};
+        form.querySelectorAll('input, textarea, select').forEach(el => {
+            if (!el.name) return;
+            // Skip file inputs and CSRF token
+            if (el.type === 'file' || el.name === 'csrfmiddlewaretoken') return;
+            if (el.type === 'checkbox' || el.type === 'radio') {
+                data[el.name] = el.checked;
+            } else {
+                data[el.name] = el.value;
+            }
+        });
+        try { localStorage.setItem('createWizardDraft', JSON.stringify(data)); } catch (e) { /* ignore */ }
+    }
+
+    function loadFormState() {
+        const raw = localStorage.getItem('createWizardDraft');
+        if (!raw) return;
+        let data;
+        try { data = JSON.parse(raw); } catch (e) { return; }
+        const form = document.getElementById('mainForm');
+        if (!form) return;
+        Object.keys(data).forEach(name => {
+            const el = form.querySelector('[name="' + name + '"]');
+            if (!el) return;
+            if (el.type === 'checkbox' || el.type === 'radio') el.checked = !!data[name];
+            else el.value = data[name];
+        });
+    }
+</script>
+{% endblock %}

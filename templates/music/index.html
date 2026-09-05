@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Special Soundtrack — {{ profile.full_name }} 🎵{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen px-4 pt-28 pb-36 relative overflow-hidden max-w-4xl mx-auto">
+    
+    <!-- Section Header -->
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-12 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-color);">
+            ✨ Step 7 • Music & Soundtrack ✨
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight" style="color: var(--text-color);">
+            Special Soundtrack
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            Songs and melodies dedicated to {{ profile.nickname|default:profile.full_name }} that hold sweet memories.
+        </p>
+    </div>
+
+    {% if music_tracks %}
+        <!-- Music Player Showcase Container -->
+        <div class="glass-card rounded-3xl p-6 sm:p-10 space-y-8 reveal-on-scroll">
+            
+            <!-- Vinyl Album Disc Animation -->
+            <div class="flex flex-col items-center justify-center space-y-6">
+                <div class="relative w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-slate-950 border-4 border-slate-800 shadow-2xl flex items-center justify-center p-2 group">
+                    <!-- Vinyl Grooves -->
+                    <div id="vinylDisc" class="w-full h-full rounded-full bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 border border-slate-800 flex items-center justify-center relative shadow-inner transition-transform duration-1000">
+                        <div class="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 border-4 border-slate-950 flex items-center justify-center shadow-md">
+                            <span class="text-2xl sm:text-3xl">🎵</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center space-y-1">
+                    <h2 id="nowPlayingTitle" class="font-serif font-bold text-2xl text-white">
+                        {{ primary_track.title }}
+                    </h2>
+                    <p id="nowPlayingArtist" class="text-slate-400 text-sm">
+                        {{ primary_track.artist|default:"Dedicated Track" }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Audio Controls Bar -->
+            <div id="audioControls" class="space-y-4 max-w-xl mx-auto">
+                <!-- Timeline Slider -->
+                <div class="space-y-1.5">
+                    <input type="range" id="audioProgress" min="0" value="0" step="0.1"
+                           class="w-full h-2 rounded-lg bg-slate-800 accent-rose-500 cursor-pointer">
+                    <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+                        <span id="currentTimeDisplay">0:00</span>
+                        <span id="durationDisplay">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Main Player Control Buttons -->
+                <div class="flex items-center justify-center gap-6 pt-2">
+                    <button onclick="playPreviousTrack()" class="text-slate-400 hover:text-white text-2xl transition">
+                        ⏮
+                    </button>
+
+                    <button id="playPauseBtn" onclick="toggleAudioPlayback()" class="w-16 h-16 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 hover:scale-105 text-white flex items-center justify-center text-2xl shadow-xl shadow-rose-500/30 transition-all">
+                        ▶
+                    </button>
+
+                    <button onclick="playNextTrack()" class="text-slate-400 hover:text-white text-2xl transition">
+                        ⏭
+                    </button>
+                </div>
+
+                <!-- Volume Slider -->
+                <div class="flex items-center justify-center gap-3 pt-2 max-w-xs mx-auto">
+                    <span class="text-xs text-slate-400">🔈</span>
+                    <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="0.8"
+                           class="w-full h-1.5 rounded-lg bg-slate-800 accent-rose-500 cursor-pointer">
+                    <span class="text-xs text-slate-400">🔊</span>
+                </div>
+            </div>
+
+            <div id="youtubePlayerContainer" class="hidden max-w-2xl mx-auto aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                <iframe id="youtubePlayer" class="w-full h-full" title="YouTube music player" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+
+            <div id="youtubeFallback" class="hidden max-w-xl mx-auto rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-xl">
+                <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-amber-400 text-3xl shadow-lg">🎵</div>
+                <h3 class="font-serif text-xl font-bold text-white">{{ primary_track.title }}</h3>
+                <p class="mt-2 text-sm leading-relaxed text-slate-400">This YouTube track cannot be embedded here. Upload an MP3 file to play it directly inside your birthday page.</p>
+            </div>
+
+            <!-- Playlist Selector -->
+            <div class="pt-6 border-t border-white/10 space-y-3">
+                <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-400">Playlist Tracks</h3>
+                <div class="space-y-2">
+                    {% for track in music_tracks %}
+                        <div onclick="selectTrack({{ forloop.counter0 }})"
+                             class="playlist-item p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between cursor-pointer transition">
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg text-rose-400 font-mono">#{{ forloop.counter }}</span>
+                                <div>
+                                    <div class="font-bold text-sm text-white">{{ track.title }}</div>
+                                    <div class="text-xs text-slate-400">{{ track.artist|default:"Special Melody" }}</div>
+                                </div>
+                            </div>
+
+                            {% if track.is_primary %}
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">Primary</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    {% else %}
+        <!-- Empty State Fallback -->
+        <div class="glass-card rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 animate-zoom-in">
+            <div class="text-5xl animate-bounce">🎵</div>
+            <h2 class="font-serif text-2xl font-bold text-white">Symphony of Smiles</h2>
+            <p class="text-slate-300 text-sm font-light leading-relaxed">
+                Music brings every memory with {{ profile.full_name }} to life.
+            </p>
+        </div>
+    {% endif %}
+
+    <!-- Hidden HTML5 Audio Element -->
+    <audio id="playerAudio">
+        {% if primary_track and primary_track.audio_url %}
+            <source src="{{ primary_track.audio_url }}" type="audio/mpeg">
+        {% endif %}
+    </audio>
+
+</section>
+
+<!-- Music Controller Script -->
+<script>
+    const playlist = [
+        {% for track in music_tracks %}
+            {
+                title: "{{ track.title|escapejs }}",
+                artist: "{{ track.artist|escapejs }}",
+                url: "{{ track.audio_url|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let currentTrackIndex = 0;
+    const audio = document.getElementById("playerAudio");
+    const playBtn = document.getElementById("playPauseBtn");
+    const vinyl = document.getElementById("vinylDisc");
+    const progress = document.getElementById("audioProgress");
+    const volume = document.getElementById("volumeControl");
+    const currentTimeEl = document.getElementById("currentTimeDisplay");
+    const durationEl = document.getElementById("durationDisplay");
+    const audioControls = document.getElementById("audioControls");
+    const youtubeContainer = document.getElementById("youtubePlayerContainer");
+    const youtubePlayer = document.getElementById("youtubePlayer");
+    const youtubeFallback = document.getElementById("youtubeFallback");
+
+    function getYouTubeEmbedUrl(url, shouldPlay = false) {
+        try {
+            const parsed = new URL(url);
+            if (!/(^|\.)youtube\.com$|(^|\.)youtube-nocookie\.com$|(^|\.)youtu\.be$/.test(parsed.hostname)) return "";
+            let videoId = "";
+            if (parsed.hostname === "youtu.be") videoId = parsed.pathname.slice(1).split("/")[0];
+            if (parsed.pathname.startsWith("/embed/") || parsed.pathname.startsWith("/shorts/")) {
+                videoId = parsed.pathname.split("/")[2] || "";
+            }
+            videoId = videoId || parsed.searchParams.get("v") || "";
+            const playlistId = parsed.searchParams.get("list") || "";
+            if (!videoId && !playlistId) return "";
+
+            const query = new URLSearchParams({
+                rel: "0",
+                playsinline: "1",
+                enablejsapi: "1"
+            });
+            if (playlistId) query.set("list", playlistId);
+            if (shouldPlay) query.set("autoplay", "1");
+            return `https://www.youtube.com/embed/${videoId || "videoseries"}?${query.toString()}`;
+        } catch (error) {
+            return "";
+        }
+    }
+
+    function loadTrackSource(track, shouldPlay = false) {
+        const youtubeEmbedUrl = getYouTubeEmbedUrl(track.url, shouldPlay);
+        if (youtubeEmbedUrl) {
+            if (audio) audio.pause();
+            if (audioControls) audioControls.classList.add("hidden");
+            if (youtubeContainer) youtubeContainer.classList.add("hidden");
+            if (youtubePlayer) youtubePlayer.src = youtubeEmbedUrl;
+            if (youtubeFallback) youtubeFallback.classList.remove("hidden");
+            if (vinyl) vinyl.classList.remove("animate-spin");
+            return true;
+        }
+
+        if (youtubePlayer) youtubePlayer.src = "";
+        if (youtubeContainer) youtubeContainer.classList.add("hidden");
+        if (youtubeFallback) youtubeFallback.classList.add("hidden");
+        if (audioControls) audioControls.classList.remove("hidden");
+        if (audio) audio.src = track.url;
+        return false;
+    }
+
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return "0:00";
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+    }
+
+    function toggleAudioPlayback() {
+        if (!audio || !playlist.length) return;
+        if (audio.paused) {
+            audio.play().then(() => {
+                playBtn.textContent = "❚❚";
+                if (vinyl) vinyl.classList.add("animate-spin");
+            }).catch(e => console.log("Autoplay prevented:", e));
+        } else {
+            audio.pause();
+            playBtn.textContent = "▶";
+            if (vinyl) vinyl.classList.remove("animate-spin");
+        }
+    }
+
+    function selectTrack(index) {
+        if (!playlist[index]) return;
+        currentTrackIndex = index;
+        const track = playlist[index];
+        
+        document.getElementById("nowPlayingTitle").textContent = track.title;
+        document.getElementById("nowPlayingArtist").textContent = track.artist || "Dedicated Track";
+        
+        if (loadTrackSource(track, true)) return;
+        audio.play().then(() => {
+            playBtn.textContent = "❚❚";
+            if (vinyl) vinyl.classList.add("animate-spin");
+        }).catch(e => console.log(e));
+    }
+
+    function playNextTrack() {
+        if (!playlist.length) return;
+        currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+        selectTrack(currentTrackIndex);
+    }
+
+    function playPreviousTrack() {
+        if (!playlist.length) return;
+        currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+        selectTrack(currentTrackIndex);
+    }
+
+    if (audio) {
+        audio.addEventListener("timeupdate", () => {
+            if (audio.duration) {
+                progress.max = audio.duration;
+                progress.value = audio.currentTime;
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+                durationEl.textContent = formatTime(audio.duration);
+            }
+        });
+
+        audio.addEventListener("ended", () => {
+            playNextTrack();
+        });
+
+        if (progress) {
+            progress.addEventListener("input", () => {
+                audio.currentTime = progress.value;
+            });
+        }
+
+        if (volume) {
+            volume.addEventListener("input", () => {
+                audio.volume = volume.value;
+            });
+        }
+    }
+
+    if (playlist.length) {
+        loadTrackSource(playlist[0]);
+    }
+</script>
+
+<!-- Navigation Controls Bar -->
+{% include "components/navigation_controls.html" %}
+
+<!-- Footer Component -->
+{% include "components/footer.html" %}
+{% endblock %}

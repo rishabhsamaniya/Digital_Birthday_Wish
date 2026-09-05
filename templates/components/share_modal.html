@@ -1,0 +1,165 @@
+<!-- Share Drawer / Modal Component -->
+<div id="shareModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-all duration-300">
+    
+    <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-6 shadow-2xl relative border border-white/20 animate-zoom-in">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-white/10 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-rose-500/20 text-rose-300 flex items-center justify-center text-xl">
+                    🎁
+                </div>
+                <div>
+                    <h3 class="font-serif font-bold text-lg text-white">Share Birthday Wish</h3>
+                    <p class="text-[11px] text-slate-400">Spread the celebration with family & friends</p>
+                </div>
+            </div>
+
+            <button type="button" id="closeShareModalBtn" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center text-sm transition">
+                ✕
+            </button>
+        </div>
+
+        <!-- QR Code Container -->
+        <div class="text-center space-y-3">
+            <div class="w-44 h-44 mx-auto rounded-2xl overflow-hidden bg-slate-900 border-2 border-rose-500/40 p-2 flex items-center justify-center shadow-lg">
+                {% if profile %}
+                    <img src="/{{ profile.slug }}/qr/" alt="QR Code for {{ profile.full_name }}" class="w-full h-full object-contain rounded-xl">
+                {% endif %}
+            </div>
+            
+            <a {% if profile %}href="/{{ profile.slug }}/qr/" download="{{ profile.slug }}-qr.png"{% endif %} class="inline-flex items-center gap-2 text-xs text-rose-300 hover:text-rose-200 transition font-medium">
+                📥 Download High-Res QR Code
+            </a>
+        </div>
+
+        <!-- Direct Link Copy Input -->
+        <div class="space-y-2">
+            <label class="block text-xs font-medium text-slate-300">Birthday Page Link</label>
+            <div class="flex items-center gap-2">
+                <input type="text" id="shareUrlInput" readonly
+                       class="w-full px-3 py-2.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-mono text-slate-300 focus:outline-none truncate">
+                <button type="button" id="copyShareUrlBtn" class="px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition shrink-0">
+                    Copy 📋
+                </button>
+            </div>
+            <div id="copyToast" class="hidden text-[11px] text-emerald-400 font-mono text-center pt-1">
+                ✓ Link copied to clipboard!
+            </div>
+        </div>
+
+        <!-- 1-Click Social Sharing Buttons -->
+        <div class="space-y-2 pt-2 border-t border-white/10">
+            <label class="block text-xs font-medium text-slate-400 text-center">Share via Social Media</label>
+            
+            <div class="grid grid-cols-4 gap-2">
+                <!-- WhatsApp -->
+                <a id="shareWhatsapp" target="_blank" rel="noopener noreferrer"
+                   class="py-2.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-200 flex flex-col items-center justify-center gap-1 transition text-xs">
+                    <span class="text-base">💬</span>
+                    <span class="text-[10px]">WhatsApp</span>
+                </a>
+
+                <!-- Telegram -->
+                <a id="shareTelegram" target="_blank" rel="noopener noreferrer"
+                   class="py-2.5 rounded-xl bg-sky-600/30 hover:bg-sky-600/50 border border-sky-500/40 text-sky-200 flex flex-col items-center justify-center gap-1 transition text-xs">
+                    <span class="text-base">✈️</span>
+                    <span class="text-[10px]">Telegram</span>
+                </a>
+
+                <!-- Facebook -->
+                <a id="shareFacebook" target="_blank" rel="noopener noreferrer"
+                   class="py-2.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 text-blue-200 flex flex-col items-center justify-center gap-1 transition text-xs">
+                    <span class="text-base">📘</span>
+                    <span class="text-[10px]">Facebook</span>
+                </a>
+
+                <!-- X / Twitter -->
+                <a id="shareTwitter" target="_blank" rel="noopener noreferrer"
+                   class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-200 flex flex-col items-center justify-center gap-1 transition text-xs">
+                    <span class="text-base">🐦</span>
+                    <span class="text-[10px]">Twitter</span>
+                </a>
+            </div>
+
+            <!-- Native Web Share API Button (Visible on supporting mobile browsers) -->
+            <button type="button" id="nativeShareBtn" class="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/10 transition mt-2 hidden">
+                Share via Apps 📲
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const shareModal = document.getElementById("shareModal");
+        const openBtn = document.getElementById("openShareModalBtn");
+        const closeBtn = document.getElementById("closeShareModalBtn");
+        const copyBtn = document.getElementById("copyShareUrlBtn");
+        const shareUrlInput = document.getElementById("shareUrlInput");
+        const copyToast = document.getElementById("copyToast");
+        const nativeShareBtn = document.getElementById("nativeShareBtn");
+
+        const currentUrl = window.location.href;
+        if (shareUrlInput) shareUrlInput.value = currentUrl;
+
+        // Configure social links
+        const encodedUrl = encodeURIComponent(currentUrl);
+        const encodedText = encodeURIComponent("Wish {% if profile %}{{ profile.full_name }}{% else %}a Special Someone{% endif %} a Happy Birthday! 🎂✨");
+
+        const whatsappLink = document.getElementById("shareWhatsapp");
+        if (whatsappLink) whatsappLink.href = `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`;
+
+        const telegramLink = document.getElementById("shareTelegram");
+        if (telegramLink) telegramLink.href = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+
+        const facebookLink = document.getElementById("shareFacebook");
+        if (facebookLink) facebookLink.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+
+        const twitterLink = document.getElementById("shareTwitter");
+        if (twitterLink) twitterLink.href = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+
+        // Show native share button if supported
+        if (navigator.share && nativeShareBtn) {
+            nativeShareBtn.classList.remove("hidden");
+            nativeShareBtn.addEventListener("click", async function() {
+                try {
+                    await navigator.share({
+                        title: "Happy Birthday Wishes",
+                        text: "Wish {% if profile %}{{ profile.full_name }}{% else %}a Special Someone{% endif %} a Happy Birthday! 🎂✨",
+                        url: currentUrl
+                    });
+                } catch (err) {
+                    console.log("Share cancelled or failed:", err);
+                }
+            });
+        }
+
+        // Open/Close Modal Handlers
+        if (openBtn) {
+            openBtn.addEventListener("click", () => shareModal.classList.remove("hidden"));
+        }
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => shareModal.classList.add("hidden"));
+        }
+        if (shareModal) {
+            shareModal.addEventListener("click", function(e) {
+                if (e.target === shareModal) shareModal.classList.add("hidden");
+            });
+        }
+
+        // Copy URL Handler
+        if (copyBtn && shareUrlInput) {
+            copyBtn.addEventListener("click", function() {
+                navigator.clipboard.writeText(shareUrlInput.value).then(() => {
+                    if (copyToast) {
+                        copyToast.classList.remove("hidden");
+                        setTimeout(() => copyToast.classList.add("hidden"), 3000);
+                    }
+                });
+            });
+        }
+    });
+</script>

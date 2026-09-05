@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Our Journey — {{ profile.full_name }} 📅{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen px-4 pt-28 pb-36 relative overflow-hidden max-w-4xl mx-auto">
+    
+    <!-- Section Header -->
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-16 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-color);">
+            ✨ Step 4 • Milestone Journey ✨
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight" style="color: var(--text-color);">
+            Our Journey Together
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            Every chapter, milestone, and special moment that brought us to today with {{ profile.nickname|default:profile.full_name }}.
+        </p>
+    </div>
+
+    <!-- Vertical Timeline Container -->
+    {% if timeline_events %}
+        <div class="relative wrap overflow-hidden p-2 sm:p-6">
+            
+            <!-- Central Glowing Line -->
+            <div class="border-2-2 absolute border-opacity-20 border-rose-500 h-full border left-1/2 -ml-0.5 rounded-full" style="background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));"></div>
+
+            <div class="space-y-12">
+                {% for event in timeline_events %}
+                    <div class="relative flex items-center justify-between w-full reveal-on-scroll {% if forloop.counter|divisibleby:2 %}flex-row-reverse{% endif %}">
+                        
+                        <!-- Side Content Box -->
+                        <div class="w-full sm:w-5/12">
+                            <div class="glass-card glass-card-hover rounded-3xl p-6 space-y-4 shadow-xl">
+                                
+                                <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-2xl">{{ event.icon|default:"✨" }}</span>
+                                        <h3 class="font-serif font-bold text-lg sm:text-xl text-white">{{ event.title }}</h3>
+                                    </div>
+                                    <span class="text-[11px] font-mono px-3 py-1 rounded-full bg-white/10 text-amber-300">
+                                        {{ event.event_date|date:"N Y" }}
+                                    </span>
+                                </div>
+
+                                {% if event.image %}
+                                    <div class="w-full h-44 rounded-2xl overflow-hidden bg-slate-950">
+                                        <img src="{{ event.image.url }}" alt="{{ event.title }}" loading="lazy" class="w-full h-full object-cover">
+                                    </div>
+                                {% endif %}
+
+                                <p class="text-slate-300 text-sm font-light leading-relaxed">
+                                    {{ event.description }}
+                                </p>
+
+                            </div>
+                        </div>
+
+                        <!-- Central Node Badge -->
+                        <div class="z-20 flex items-center justify-center bg-slate-950 border-2 border-rose-500 shadow-xl w-10 h-10 rounded-full text-base" style="border-color: var(--primary-color);">
+                            <span>{{ event.icon|default:"✨" }}</span>
+                        </div>
+
+                        <!-- Empty Opposite Spacer for Desktop Layout -->
+                        <div class="hidden sm:block w-5/12"></div>
+
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    {% else %}
+        <!-- Empty Timeline Fallback Card -->
+        <div class="glass-card rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 animate-zoom-in">
+            <div class="text-5xl animate-bounce">📅</div>
+            <h2 class="font-serif text-2xl font-bold text-white">A Story Still Being Written</h2>
+            <p class="text-slate-300 text-sm font-light leading-relaxed">
+                From the very first day we met to this special birthday, every moment shared with {{ profile.full_name }} is a milestone to treasure.
+            </p>
+        </div>
+    {% endif %}
+
+</section>
+
+<!-- Navigation Controls Bar -->
+{% include "components/navigation_controls.html" %}
+
+<!-- Footer Component -->
+{% include "components/footer.html" %}
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}{{ title }} | Admin Dashboard{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <div class="flex items-center justify-between">
+        <a href="{% url 'dashboard:video_list' profile.pk %}" class="text-xs text-slate-400 hover:text-white transition">
+            ← Back to Videos list
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl space-y-6">
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-sm space-y-1">
+                <div class="font-bold">Please correct the following errors:</div>
+                <ul class="list-disc list-inside text-xs">
+                    {% for field, errors in form.errors.items %}
+                        <li><strong class="capitalize">{{ field }}:</strong> {{ errors|striptags }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Sender Name *</label>
+                {{ form.sender_name }}
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Relationship (Optional)</label>
+                {{ form.relationship }}
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">Video File Upload (.mp4, .webm)</label>
+            {{ form.video_file }}
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">Or YouTube / Vimeo Video URL</label>
+            {{ form.video_url }}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Cover Thumbnail Image</label>
+                {{ form.thumbnail }}
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Display Order</label>
+                {{ form.display_order }}
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">Message Caption (Optional)</label>
+            {{ form.message_text }}
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-4">
+            <a href="{% url 'dashboard:video_list' profile.pk %}" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition">
+                Cancel
+            </a>
+            <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white text-sm font-medium shadow-lg hover:scale-105 transition-all">
+                {{ action }}
+            </button>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}

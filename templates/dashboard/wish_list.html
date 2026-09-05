@@ -1,0 +1,64 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Submitted Wishes for {{ profile.full_name }} | Admin Dashboard{% endblock %}
+{% block page_title %}Submitted Wishes: {{ profile.full_name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex items-center justify-between">
+        <a href="{% url 'dashboard:profile_list' %}" class="text-xs text-slate-400 hover:text-white transition">
+            ← Back to Profiles
+        </a>
+
+        <span class="text-xs text-slate-400 font-mono">Total Wishes: {{ wishes|length }}</span>
+    </div>
+
+    {% if wishes %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for wish in wishes %}
+                <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-serif font-bold text-lg text-white">{{ wish.sender_name }}</h3>
+                            <div class="flex items-center gap-2">
+                                {% if wish.candle_blown %}
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">🕯️ Candled</span>
+                                {% endif %}
+                                {% if wish.is_approved %}
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Approved</span>
+                                {% else %}
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-red-500/20 text-red-300">Hidden</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-slate-300 leading-relaxed italic">
+                            "{{ wish.message }}"
+                        </p>
+
+                        <div class="text-[11px] font-mono text-slate-500">
+                            Submitted {{ wish.created_at|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-2">
+                        <a href="{% url 'dashboard:wish_toggle_approval' wish.pk %}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition">
+                            {% if wish.is_approved %}Hide from Wall{% else %}Approve Wish{% endif %}
+                        </a>
+                        <a href="{% url 'dashboard:wish_delete' wish.pk %}" class="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-xs text-red-400 transition">
+                            Delete
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="p-12 rounded-2xl bg-slate-900/50 border border-slate-800 text-center space-y-4">
+            <div class="text-4xl">🎂</div>
+            <div class="text-slate-300 font-medium">No birthday wishes submitted for {{ profile.full_name }} yet</div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

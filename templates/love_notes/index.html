@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Things I Love About You — {{ profile.full_name }} ❤️{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen px-4 pt-28 pb-36 relative overflow-hidden max-w-6xl mx-auto">
+    
+    <!-- Section Header -->
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-14 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-color);">
+            ✨ Step 5 • Heartfelt Notes ✨
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight" style="color: var(--text-color);">
+            Things I Love About You
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            Little reasons and sweet reminders of why {{ profile.nickname|default:profile.full_name }} holds a special place in my heart.
+        </p>
+    </div>
+
+    <!-- Love Notes Grid -->
+    {% if love_notes %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for note in love_notes %}
+                <div class="glass-card glass-card-hover rounded-3xl p-8 flex flex-col justify-between space-y-6 reveal-on-scroll relative group cursor-pointer" onclick="BirthdayAnimations.spawnFloatingHeart(event.clientX, event.clientY)">
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                {{ note.icon|default:"❤️" }}
+                            </div>
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-rose-400 font-semibold">
+                                Note #{{ forloop.counter }}
+                            </span>
+                        </div>
+
+                        <h3 class="font-serif font-bold text-2xl text-white group-hover:text-amber-300 transition-colors">
+                            {{ note.title }}
+                        </h3>
+
+                        <p class="text-slate-300 text-sm font-light leading-relaxed italic">
+                            "{{ note.message }}"
+                        </p>
+                    </div>
+
+                    <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-light">
+                        <span>Tap for ❤️</span>
+                        <span style="color: var(--accent-color);">Forever & Always</span>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State Fallback -->
+        <div class="glass-card rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 animate-zoom-in">
+            <div class="text-5xl animate-bounce">💌</div>
+            <h2 class="font-serif text-2xl font-bold text-white">Endless Love & Gratitude</h2>
+            <p class="text-slate-300 text-sm font-light leading-relaxed">
+                There aren't enough words in the world to express how extraordinary {{ profile.full_name }} is.
+            </p>
+        </div>
+    {% endif %}
+
+</section>
+
+<!-- Navigation Controls Bar -->
+{% include "components/navigation_controls.html" %}
+
+<!-- Footer Component -->
+{% include "components/footer.html" %}
+{% endblock %}

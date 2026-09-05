@@ -1,0 +1,109 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Dashboard Overview | Birthday Memories{% endblock %}
+{% block page_title %}Overview{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    
+    <!-- Metrics Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Total Profiles Card -->
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs uppercase tracking-wider text-slate-400 font-medium">Total Profiles</div>
+                    <div class="text-3xl font-bold text-white mt-1">{{ total_profiles }}</div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-2xl">
+                    🎂
+                </div>
+            </div>
+            <div class="mt-4 text-xs text-slate-400">Created birthday experiences</div>
+        </div>
+
+        <!-- Active Profiles Card -->
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs uppercase tracking-wider text-slate-400 font-medium">Active Profiles</div>
+                    <div class="text-3xl font-bold text-emerald-400 mt-1">{{ active_profiles }}</div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl">
+                    ✨
+                </div>
+            </div>
+            <div class="mt-4 text-xs text-slate-400">Live experiences ready to view</div>
+        </div>
+
+        <!-- Media & Stories Count -->
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-xs uppercase tracking-wider text-slate-400 font-medium">System Readiness</div>
+                    <div class="text-xl font-bold text-amber-300 mt-1">Operational</div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-2xl">
+                    ⚡
+                </div>
+            </div>
+            <div class="mt-4 text-xs text-slate-400">Phase 6 Custom Admin Dashboard</div>
+        </div>
+
+    </div>
+
+    <!-- Quick Actions & Recent Profiles Section -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-white">Recent Birthday Profiles</h2>
+            <a href="{% url 'dashboard:profile_list' %}" class="text-xs text-rose-400 hover:text-rose-300 font-medium">
+                View All Profiles →
+            </a>
+        </div>
+
+        {% if recent_profiles %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for profile in recent_profiles %}
+                    <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h3 class="font-serif font-bold text-lg text-white">{{ profile.full_name }}</h3>
+                                <div class="text-xs text-rose-400 font-mono">/{{ profile.slug }}/</div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase {% if profile.is_active %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/30{% else %}bg-slate-800 text-slate-400 border border-slate-700{% endif %}">
+                                {% if profile.is_active %}Live{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+
+                        <div class="text-xs text-slate-400 space-y-1">
+                            <div>Birthday: <span class="text-slate-200">{{ profile.birthday_date|date:"N j, Y" }}</span></div>
+                            <div>Theme: <span class="text-amber-300">{{ profile.theme.name|default:"Luxury Dark" }}</span></div>
+                        </div>
+
+                        <div class="pt-2 flex items-center gap-2">
+                            <a href="/{{ profile.slug }}/" target="_blank" class="flex-1 py-2 text-center rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-white transition">
+                                Preview ↗
+                            </a>
+                            <a href="{% url 'dashboard:profile_edit' profile.pk %}" class="flex-1 py-2 text-center rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-xs font-medium text-rose-300 transition">
+                                Edit
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="p-12 rounded-2xl bg-slate-900/50 border border-slate-800 text-center space-y-4">
+                <div class="text-4xl">🎂</div>
+                <div class="text-slate-300 font-medium">No birthday profiles created yet</div>
+                <div>
+                    <a href="{% url 'dashboard:profile_create' %}" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 text-white text-sm font-medium shadow-lg hover:scale-105 transition-all inline-block">
+                        Create First Profile
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

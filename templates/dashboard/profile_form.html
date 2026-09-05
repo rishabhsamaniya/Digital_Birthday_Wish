@@ -1,0 +1,169 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}{{ title }} | Admin Dashboard{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <div class="flex items-center justify-between">
+        <a href="{% url 'dashboard:profile_list' %}" class="text-xs text-slate-400 hover:text-white transition">
+            ← Back to Profiles
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl space-y-8">
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-sm space-y-1">
+                <div class="font-bold">Please correct the following errors:</div>
+                <ul class="list-disc list-inside text-xs">
+                    {% for field, errors in form.errors.items %}
+                        <li><strong class="capitalize">{{ field }}:</strong> {{ errors|striptags }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Basic Information -->
+        <div class="space-y-4">
+            <h2 class="text-base font-bold text-white uppercase tracking-wider text-rose-400 font-mono">1. Basic Identification</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Full Name *</label>
+                    {{ form.full_name }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Nickname</label>
+                    {{ form.nickname }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">URL Slug (e.g., priya for /priya/)</label>
+                    {{ form.slug }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Birthday Date *</label>
+                    {{ form.birthday_date }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Relationship Start Date</label>
+                    {{ form.relationship_start_date }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">First Meeting Date</label>
+                    {{ form.first_meeting_date }}
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- Theme & Display Preferences -->
+        <div class="space-y-4">
+            <h2 class="text-base font-bold text-white uppercase tracking-wider text-amber-400 font-mono">2. Visual Theme & Branding</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Select Theme</label>
+                    {{ form.theme }}
+                </div>
+                <div class="flex items-center gap-3 pt-6">
+                    {{ form.enable_animations }}
+                    <label class="text-xs text-slate-300 font-medium">Enable confetti, floating hearts, and animations</label>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- Image Uploads -->
+        <div class="space-y-4">
+            <h2 class="text-base font-bold text-white uppercase tracking-wider text-purple-400 font-mono">3. Media Assets</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Profile Picture</label>
+                    {{ form.profile_image }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Hero Image</label>
+                    {{ form.hero_image }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Cover Image</label>
+                    {{ form.cover_image }}
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- Story & Letter Messages -->
+        <div class="space-y-4">
+            <h2 class="text-base font-bold text-white uppercase tracking-wider text-emerald-400 font-mono">4. Story Messages</h2>
+            
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Introductory Welcome Message</label>
+                {{ form.intro_message }}
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Grand Final Birthday Wish Message</label>
+                {{ form.final_message }}
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Special Letter / Heart-to-Heart</label>
+                {{ form.special_letter }}
+            </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- Publishing & Expiration Controls -->
+        <div class="space-y-4">
+            <h2 class="text-base font-bold text-white uppercase tracking-wider text-sky-400 font-mono">5. Publishing Schedule & Expiry</h2>
+            
+            <div class="flex items-center gap-3">
+                {{ form.is_active }}
+                <label class="text-sm font-semibold text-white">Active Profile (Master toggle)</label>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Schedule Publish Date</label>
+                    {{ form.publish_date }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Expiration Date</label>
+                    {{ form.expiry_date }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Expiry Behavior</label>
+                    {{ form.expiry_behavior }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-6 flex items-center justify-end gap-4">
+            <a href="{% url 'dashboard:profile_list' %}" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition">
+                Cancel
+            </a>
+            <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white text-sm font-medium shadow-lg hover:scale-105 transition-all">
+                {{ action }}
+            </button>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}

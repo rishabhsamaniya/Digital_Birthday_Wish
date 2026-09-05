@@ -1,0 +1,37 @@
+{% if show_navigation_controls is not False %}
+<!-- Fixed Bottom Glass Navigation Controls Bar -->
+<div class="fixed bottom-6 left-0 right-0 z-40 px-4 pointer-events-none">
+    <div class="max-w-xl mx-auto backdrop-blur-xl bg-slate-950/80 border border-white/10 rounded-full p-2 flex items-center justify-between shadow-2xl pointer-events-auto">
+        
+        <!-- Previous Button -->
+        {% if prev_url %}
+            <a href="{{ prev_url }}" class="px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-white text-xs font-semibold tracking-wider uppercase border border-white/10 transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                <span>Previous</span>
+            </a>
+        {% else %}
+            <div class="px-5 py-2.5 text-xs font-semibold tracking-wider uppercase text-slate-600 cursor-not-allowed select-none">
+                Previous
+            </div>
+        {% endif %}
+
+        <!-- Step Indicator Pill -->
+        <div class="text-xs font-mono font-medium text-slate-300 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+            {{ current_step|default:1 }} / {{ total_steps|default:9 }}
+        </div>
+
+        <!-- Next Button -->
+        {% if next_url %}
+            <a href="{{ next_url }}" class="px-6 py-2.5 rounded-full text-white text-xs font-semibold tracking-wider uppercase shadow-lg transition-all flex items-center gap-2 hover:scale-105" style="background: linear-gradient(135deg, var(--primary-color, #f43f5e), var(--secondary-color, #f59e0b));">
+                <span>Next</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </a>
+        {% else %}
+            <div class="px-6 py-2.5 text-xs font-semibold tracking-wider uppercase text-slate-600 cursor-not-allowed select-none">
+                Next
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endif %}

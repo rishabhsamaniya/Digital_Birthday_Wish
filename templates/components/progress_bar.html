@@ -1,0 +1,6 @@
+<!-- Dynamic Journey Progress Bar -->
+{% if current_step %}
+<div class="fixed top-0 left-0 right-0 z-50 h-1 bg-slate-900/40">
+    <div class="h-full transition-all duration-500 ease-out shadow-sm" style="width: {% widthratio current_step total_steps|default:9 100 %}%; background: linear-gradient(90deg, var(--primary-color, #f43f5e), var(--secondary-color, #f59e0b));"></div>
+</div>
+{% endif %}

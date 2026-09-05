@@ -1,0 +1,79 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Video Messages for {{ profile.full_name }} | Admin Dashboard{% endblock %}
+{% block page_title %}Video Messages: {{ profile.full_name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex items-center justify-between">
+        <a href="{% url 'dashboard:profile_list' %}" class="text-xs text-slate-400 hover:text-white transition">
+            ← Back to Profiles
+        </a>
+
+        <a href="{% url 'dashboard:video_create' profile.pk %}" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white text-sm font-medium shadow-lg hover:scale-105 transition-all">
+            + Add Video Message
+        </a>
+    </div>
+
+    {% if videos %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for video in videos %}
+                <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <h3 class="font-serif font-bold text-lg text-white">{{ video.sender_name }}</h3>
+                                {% if video.relationship %}
+                                    <span class="text-xs text-rose-400 font-medium">{{ video.relationship }}</span>
+                                {% endif %}
+                            </div>
+                            <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-amber-300">#{{ video.display_order }}</span>
+                        </div>
+
+                        {% if video.thumbnail %}
+                            <div class="w-full h-36 rounded-xl overflow-hidden bg-slate-950">
+                                <img src="{{ video.thumbnail.url }}" alt="{{ video.sender_name }}" class="w-full h-full object-cover">
+                            </div>
+                        {% endif %}
+
+                        {% if video.message_text %}
+                            <p class="text-xs text-slate-300 line-clamp-3 leading-relaxed">
+                                {{ video.message_text }}
+                            </p>
+                        {% endif %}
+
+                        <div class="text-[11px] font-mono text-cyan-300">
+                            {% if video.video_file %}
+                                🎥 File: {{ video.video_file.name }}
+                            {% elif video.video_url %}
+                                🔗 Embed URL: {{ video.video_url }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-2">
+                        <a href="{% url 'dashboard:video_edit' video.pk %}" class="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-xs text-rose-300 transition">
+                            Edit
+                        </a>
+                        <a href="{% url 'dashboard:video_delete' video.pk %}" class="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-xs text-red-400 transition">
+                            Delete
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="p-12 rounded-2xl bg-slate-900/50 border border-slate-800 text-center space-y-4">
+            <div class="text-4xl">🎥</div>
+            <div class="text-slate-300 font-medium">No video messages added for {{ profile.full_name }} yet</div>
+            <div>
+                <a href="{% url 'dashboard:video_create' profile.pk %}" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 text-white text-sm font-medium shadow-lg hover:scale-105 transition-all inline-block">
+                    Add First Video Message
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Our Memories — {{ profile.full_name }} 💖{% endblock %}
+
+{% block content %}
+<!-- Top Progress Bar Component -->
+{% include "components/progress_bar.html" %}
+
+<!-- Floating Header Component -->
+{% include "components/header.html" %}
+
+<section class="min-h-screen px-4 pt-28 pb-36 relative overflow-hidden max-w-6xl mx-auto">
+    
+    <!-- Section Header -->
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-12 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-color);">
+            ✨ Step 3 • Memory Collection ✨
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-6xl font-bold tracking-tight" style="color: var(--text-color);">
+            Our Favorite Memories
+        </h1>
+
+        <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed">
+            Beautiful moments and precious stories with {{ profile.nickname|default:profile.full_name }} preserved forever.
+        </p>
+    </div>
+
+    <!-- Memories Grid -->
+    {% if memories %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for memory in memories %}
+                <div class="glass-card glass-card-hover rounded-3xl overflow-hidden flex flex-col justify-between reveal-on-scroll">
+                    
+                    {% if memory.image %}
+                        <div class="relative w-full h-56 overflow-hidden bg-slate-950">
+                            <img src="{{ memory.image.url }}" alt="{{ memory.title }}" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                            
+                            {% if memory.memory_date %}
+                                <div class="absolute bottom-3 left-4 px-3 py-1 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/15 text-[11px] font-mono text-amber-300">
+                                    📅 {{ memory.memory_date|date:"F j, Y" }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-mono uppercase tracking-widest text-rose-400 font-semibold">
+                                    Memory #{{ forloop.counter }}
+                                </span>
+                                {% if not memory.image and memory.memory_date %}
+                                    <span class="text-[11px] font-mono text-amber-300">
+                                        {{ memory.memory_date|date:"F j, Y" }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <h3 class="font-serif font-bold text-xl text-white leading-snug">
+                                {{ memory.title }}
+                            </h3>
+
+                            <p class="text-slate-300 text-sm font-light leading-relaxed">
+                                {{ memory.description }}
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty Memories Fallback Card -->
+        <div class="glass-card rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 animate-zoom-in">
+            <div class="text-5xl animate-bounce">💖</div>
+            <h2 class="font-serif text-2xl font-bold text-white">Unforgettable Chapters</h2>
+            <p class="text-slate-300 text-sm font-light leading-relaxed">
+                Every smile, laughter, and moment shared with {{ profile.full_name }} forms an everlasting memory.
+            </p>
+        </div>
+    {% endif %}
+
+</section>
+
+<!-- Navigation Controls Bar -->
+{% include "components/navigation_controls.html" %}
+
+<!-- Footer Component -->
+{% include "components/footer.html" %}
+{% endblock %}
