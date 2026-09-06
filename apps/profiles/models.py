@@ -127,6 +127,11 @@ class BirthdayProfile(models.Model):
         help_text="Hashed unique access password shown once to the creator after publish"
     )
 
+    # Payment gate for QR/public journey access
+    is_paid = models.BooleanField(default=False, help_text="Whether the creation payment has been verified")
+    razorpay_order_id = models.CharField(max_length=100, blank=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True)
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

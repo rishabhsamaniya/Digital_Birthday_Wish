@@ -100,14 +100,18 @@ class BirthdayProfileViewsTest(TestCase):
             slug="sneha",
             birthday_date=date(1999, 3, 25),
             theme=self.theme,
-            is_active=True
+            is_active=True,
+            is_paid=True,
+            is_password_protected=False,
         )
 
         self.inactive_profile = BirthdayProfile.objects.create(
             full_name="Rahul Mehra",
             slug="rahul",
             birthday_date=date(1995, 1, 10),
-            is_active=False
+            is_active=False,
+            is_paid=True,
+            is_password_protected=False,
         )
 
         self.scheduled_profile = BirthdayProfile.objects.create(
@@ -115,7 +119,9 @@ class BirthdayProfileViewsTest(TestCase):
             slug="ananya",
             birthday_date=date(2001, 7, 4),
             publish_date=timezone.now() + timedelta(days=5),
-            is_active=True
+            is_active=True,
+            is_paid=True,
+            is_password_protected=False,
         )
 
         self.expired_private_profile = BirthdayProfile.objects.create(
@@ -124,7 +130,9 @@ class BirthdayProfileViewsTest(TestCase):
             birthday_date=date(1992, 11, 18),
             expiry_date=timezone.now() - timedelta(days=1),
             expiry_behavior=BirthdayProfile.EXPIRY_MAKE_PRIVATE,
-            is_active=True
+            is_active=True,
+            is_paid=True,
+            is_password_protected=False,
         )
 
     def test_valid_profile_url_returns_200(self):
@@ -215,6 +223,13 @@ class BirthdayProfileViewsTest(TestCase):
             "secret_text": "Surprise concert tickets!",
             "pin_code": "4321",
         }
+        for prefix in ("memories", "timeline", "love_notes", "gallery", "videos"):
+            data.update({
+            f"{prefix}-TOTAL_FORMS": "0",
+                f"{prefix}-INITIAL_FORMS": "0",
+                f"{prefix}-MIN_NUM_FORMS": "0",
+                f"{prefix}-MAX_NUM_FORMS": "10",
+            })
         response = self.client.post("/create/", data)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(BirthdayProfile.objects.filter(slug="rohan", created_by=user).exists())

@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import logging
 import ast
 import json
+import os
+import razorpay
 from apps.themes.models import Theme
 from apps.music.models import BackgroundMusic
 from apps.secret_message.models import SecretMessage
@@ -159,8 +161,25 @@ def create_wizard(request):
 
 @login_required
 def creation_success(request, slug):
-    """Success page shown after profile creation — displays URL, password, and QR code."""
+    """Payment page and, after verification, the profile sharing details."""
     profile = get_object_or_404(BirthdayProfile, slug=slug, created_by=request.user)
+    razorpay_key_id = os.getenv("RAZORPAY_KEY_ID", "")
+    payment_amount = int(os.getenv("PAYMENT_AMOUNT_INR", "299"))
+    razorpay_order_id = profile.razorpay_order_id
+
+    if not profile.is_paid and razorpay_key_id and os.getenv("RAZORPAY_KEY_SECRET"):
+        client = razorpay.Client(auth=(razorpay_key_id, os.getenv("RAZORPAY_KEY_SECRET")))
+        if not razorpay_order_id:
+            order = client.order.create({
+                "amount": payment_amount * 100,
+                "currency": "INR",
+                "receipt": f"birthday_{profile.pk}",
+                "notes": {"profile_slug": profile.slug},
+            })
+            razorpay_order_id = order["id"]
+            profile.razorpay_order_id = razorpay_order_id
+            profile.save(update_fields=["razorpay_order_id", "updated_at"])
+
     profile_url = request.build_absolute_uri(f"/{profile.slug}/")
     public_wish_url = request.build_absolute_uri(f"/{profile.slug}/wish/?public=1")
     context = {
@@ -168,8 +187,44 @@ def creation_success(request, slug):
         "profile_url": profile_url,
         "plain_password": profile.plain_password_hint,
         "public_wish_url": public_wish_url,
+        "razorpay_key_id": razorpay_key_id,
+        "razorpay_order_id": razorpay_order_id,
+        "payment_amount": payment_amount,
     }
     return render(request, "profiles/creation_success.html", context)
+
+
+@login_required
+def verify_payment(request, slug):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required."}, status=405)
+
+    profile = get_object_or_404(BirthdayProfile, slug=slug, created_by=request.user)
+    if profile.is_paid:
+        return JsonResponse({"success": True})
+
+    payment_id = request.POST.get("razorpay_payment_id", "")
+    order_id = request.POST.get("razorpay_order_id", "")
+    signature = request.POST.get("razorpay_signature", "")
+    secret = os.getenv("RAZORPAY_KEY_SECRET", "")
+
+    if not all((payment_id, order_id, signature, secret)) or order_id != profile.razorpay_order_id:
+        return JsonResponse({"success": False, "error": "Invalid payment details."}, status=400)
+
+    client = razorpay.Client(auth=(os.getenv("RAZORPAY_KEY_ID", ""), secret))
+    try:
+        client.utility.verify_payment_signature({
+            "razorpay_order_id": order_id,
+            "razorpay_payment_id": payment_id,
+            "razorpay_signature": signature,
+        })
+    except razorpay.errors.SignatureVerificationError:
+        return JsonResponse({"success": False, "error": "Payment verification failed."}, status=400)
+
+    profile.is_paid = True
+    profile.razorpay_payment_id = payment_id
+    profile.save(update_fields=["is_paid", "razorpay_payment_id", "updated_at"])
+    return JsonResponse({"success": True})
 
 
 @login_required
@@ -223,6 +278,9 @@ def _get_live_profile_or_render(request, slug):
     profile = BirthdayProfile.objects.filter(slug=slug).select_related("theme").first()
     if not profile:
         raise Http404("Birthday profile not found.")
+
+    if not profile.is_paid:
+        return None, render(request, "profiles/payment_required.html", {"profile": profile}, status=402)
 
     theme = profile.theme or Theme.objects.filter(is_default=True).first()
 

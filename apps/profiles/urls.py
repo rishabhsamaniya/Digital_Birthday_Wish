@@ -8,6 +8,7 @@ urlpatterns = [
     path("my-wishes/", views.my_profiles, name="my_profiles"),
     path("<slug:slug>/unlock/", views.profile_password_gate, name="password_gate"),
     path("<slug:slug>/success/", views.creation_success, name="creation_success"),
+    path("<slug:slug>/payment/verify/", views.verify_payment, name="verify_payment"),
     path("<slug:slug>/", views.profile_detail, name="detail"),
     path("<slug:slug>/birthday/", views.birthday_reveal, name="birthday_reveal"),
     path("<slug:slug>/countdown/", views.countdown_timer, name="countdown"),

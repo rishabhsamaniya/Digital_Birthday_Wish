@@ -55,6 +55,7 @@
         </p>
     </div>
 
+    {% if profile.is_paid %}
     <!-- URL + Password card -->
     <div class="glass-card rounded-3xl p-6 sm:p-8 border border-white/15 shadow-2xl backdrop-blur-xl bg-white/5 space-y-6 mb-6">
 
@@ -149,7 +150,71 @@
         </a>
     </div>
 
+    {% else %}
+    <div class="glass-card rounded-3xl p-8 sm:p-10 border border-amber-400/25 shadow-2xl backdrop-blur-xl bg-white/5 text-center">
+        <div class="text-5xl mb-5">🔒</div>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-white mb-3">Unlock Your Birthday QR</h2>
+        <p class="text-gray-300 text-sm leading-relaxed max-w-md mx-auto mb-6">
+            Complete the one-time payment to unlock your QR code, share links, password and live birthday page.
+        </p>
+        <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-amber-500/10 border border-amber-400/25 text-amber-200 font-bold mb-6">
+            <span>Secure Razorpay payment</span><span>•</span><span>₹{{ payment_amount }}</span>
+        </div>
+        {% if razorpay_key_id and razorpay_order_id %}
+        <button type="button" id="payNowButton" class="w-full max-w-sm mx-auto block py-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-amber-400 text-white font-extrabold shadow-xl shadow-rose-500/25 hover:-translate-y-0.5 transition-all">
+            Pay ₹{{ payment_amount }} & Unlock QR
+        </button>
+        <p id="paymentError" class="hidden text-rose-300 text-xs mt-4"></p>
+        {% else %}
+        <p class="text-rose-300 text-sm">Payment is not configured yet. Add Razorpay keys in your environment.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
 </div>
+
+{% if not profile.is_paid and razorpay_key_id and razorpay_order_id %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.getElementById("payNowButton").addEventListener("click", function() {
+        const button = this;
+        button.disabled = true;
+        button.textContent = "Opening secure checkout...";
+        const checkout = new Razorpay({
+            key: "{{ razorpay_key_id|escapejs }}",
+            amount: {{ payment_amount }} * 100,
+            currency: "INR",
+            name: "Digital Birthday Wish",
+            description: "Birthday surprise QR unlock",
+            order_id: "{{ razorpay_order_id|escapejs }}",
+            handler: function(response) {
+                const formData = new URLSearchParams({
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature
+                });
+                fetch("{% url 'profiles:verify_payment' profile.slug %}", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                    body: formData
+                }).then(result => result.json()).then(result => {
+                    if (result.success) window.location.reload();
+                    else throw new Error(result.error || "Payment verification failed.");
+                }).catch(error => {
+                    document.getElementById("paymentError").textContent = error.message;
+                    document.getElementById("paymentError").classList.remove("hidden");
+                    button.disabled = false;
+                    button.textContent = "Pay ₹{{ payment_amount }} & Unlock QR";
+                });
+            },
+            modal: { ondismiss: function() { button.disabled = false; button.textContent = "Pay ₹{{ payment_amount }} & Unlock QR"; } },
+            theme: { color: "#f43f5e" }
+        });
+        checkout.open();
+    });
+</script>
+{% endif %}
 
 <script>
     // Copy text to clipboard
