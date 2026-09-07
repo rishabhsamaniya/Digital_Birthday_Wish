@@ -11,6 +11,7 @@ class BirthdayProfileAdmin(admin.ModelAdmin):
         "theme",
         "birthday_date",
         "is_active",
+        "is_paid",
         "publish_date",
         "expiry_date",
         "expiry_behavior",
@@ -19,6 +20,7 @@ class BirthdayProfileAdmin(admin.ModelAdmin):
     list_filter = (
         "theme",
         "is_active",
+        "is_paid",
         "expiry_behavior",
         "enable_animations",
         "birthday_date",
@@ -27,7 +29,12 @@ class BirthdayProfileAdmin(admin.ModelAdmin):
     )
     search_fields = ("full_name", "nickname", "slug", "intro_message", "final_message")
     prepopulated_fields = {"slug": ("full_name",)}
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "razorpay_order_id",
+        "razorpay_payment_id",
+    )
 
     fieldsets = (
         ("Basic Information", {
@@ -62,6 +69,13 @@ class BirthdayProfileAdmin(admin.ModelAdmin):
                 "expiry_date",
                 "expiry_behavior",
                 "enable_animations",
+            )
+        }),
+        ("Payment Status", {
+            "fields": (
+                "is_paid",
+                "razorpay_order_id",
+                "razorpay_payment_id",
             )
         }),
         ("System Timestamps", {
