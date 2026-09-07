@@ -34,8 +34,7 @@
                     
                     {% if memory.image %}
                         <div class="relative w-full aspect-[4/3] overflow-hidden bg-slate-950/80 flex items-center justify-center">
-                            <img src="{{ memory.image.url }}" alt="{{ memory.title }}" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-30 blur-2xl scale-110">
-                            <img src="{{ memory.image.url }}" alt="{{ memory.title }}" loading="lazy" class="relative z-10 max-w-full max-h-full w-auto h-auto object-contain p-2 hover:scale-105 transition-transform duration-700">
+                            <img src="{{ memory.image.url }}" alt="{{ memory.title }}" loading="lazy" decoding="async" class="relative z-10 max-w-full max-h-full w-auto h-auto object-contain p-2 hover:scale-105 transition-transform duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
                             
                             {% if memory.memory_date %}

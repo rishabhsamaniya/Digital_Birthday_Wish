@@ -1,4 +1,5 @@
 from django.db import models
+from apps.media_utils import optimize_image_field
 
 
 class TimelineEvent(models.Model):
@@ -38,3 +39,8 @@ class TimelineEvent(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.event_date}) - {self.birthday_profile.full_name}"
+
+    def save(self, *args, **kwargs):
+        if self.image and not self.image._committed:
+            optimize_image_field(self.image)
+        super().save(*args, **kwargs)

@@ -35,7 +35,7 @@
                     <!-- Video Player Container -->
                     <div class="relative w-full aspect-video bg-slate-950 overflow-hidden">
                         {% if video.video_file %}
-                            <video controls
+                            <video controls preload="none" loading="lazy"
                                    {% if video.thumbnail %}poster="{{ video.thumbnail.url }}"{% endif %}
                                    class="w-full h-full object-cover">
                                 <source src="{{ video.video_file.url }}" type="video/mp4">
@@ -44,6 +44,7 @@
                         {% elif video.embed_url %}
                             <iframe src="{{ video.embed_url }}"
                                     title="Video message from {{ video.sender_name }}"
+                                    loading="lazy"
                                     class="w-full h-full border-0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen>

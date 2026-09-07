@@ -1,5 +1,6 @@
 import re
 from django.db import models
+from apps.media_utils import optimize_image_field
 
 
 class VideoMessage(models.Model):
@@ -40,6 +41,11 @@ class VideoMessage(models.Model):
 
     def __str__(self):
         return f"Video from {self.sender_name} ({self.birthday_profile.full_name})"
+
+    def save(self, *args, **kwargs):
+        if self.thumbnail and not self.thumbnail._committed:
+            optimize_image_field(self.thumbnail)
+        super().save(*args, **kwargs)
 
     @property
     def embed_url(self):

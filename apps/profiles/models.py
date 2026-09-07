@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.text import slugify
+from apps.media_utils import optimize_image_field
 
 RESERVED_SLUGS = ["admin", "dashboard", "static", "media", "api", "login", "logout", "create", "my-wishes", "accounts"]
 
@@ -195,6 +196,10 @@ class BirthdayProfile(models.Model):
         if not self.slug and self.full_name:
             self.slug = slugify(self.full_name)
         self.full_name = self.full_name.strip()
+        for field_name in ("profile_image", "hero_image", "cover_image"):
+            image = getattr(self, field_name)
+            if image and not image._committed:
+                optimize_image_field(image)
         self.full_clean()
         # Auto-derive and store access password hash on first save or if not set
         if self.is_password_protected and not self.access_password_hash and self.full_name and self.birthday_date:
